@@ -2,12 +2,12 @@ plugins { id 'com.android.application' }
 
 android {
     namespace 'cd.jesuiskcciste.formation'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "cd.jesuiskcciste.formation"
         minSdk 21            // Android 5.0 et plus
-        targetSdk 34
+        targetSdk 36
         versionCode 3        // augmentez à chaque nouvelle version (2, 3, ...)
         versionName "1.0"
     }
