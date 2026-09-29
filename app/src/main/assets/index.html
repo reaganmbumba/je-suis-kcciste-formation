@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071A3D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KCCiste Formation">
+<meta name="description" content="Formation doctrinale pour les néophytes – Paroisse de Pika Pende">
+<title>JE SUIS KCCiste – FORMATION</title>
+<link id="favicon" rel="icon" href="">
+
+<!--
+  =====================================================================
+  JE SUIS KCCiste – FORMATION
+  Application de formation doctrinale (version 1 – 100 % locale)
+  ---------------------------------------------------------------------
+  Fichier unique : HTML + CSS + JavaScript. Aucune bibliothèque externe,
+  aucune police distante, aucun serveur : fonctionne hors ligne.
+
+  OÙ MODIFIER (rechercher ces repères dans le fichier) :
+    [CONFIG]      Nom du créateur, paroisse, numéro WhatsApp, messages
+    [COULEURS]    Variables CSS des couleurs (:root)
+    [LOGO]        Fonction logoSVG()  (logo vectoriel « FORMATION »)
+    [CHAPITRES]   Tableau CHAPTERS (cours + questions)
+    [DATES]       Tableau DATES (chronologie)
+    [AUTH]        AuthService (à remplacer plus tard par un vrai backend)
+  =====================================================================
+-->
+
+<style>
+/* ============================================================
+   [COULEURS] Identité visuelle
+   ============================================================ */
+:root{
+  --night:#071A3D;        /* Bleu nuit  */
+  --royal:#0B3D91;        /* Bleu royal */
+  --gold:#D4AF37;         /* Or         */
+  --gold-light:#F5D76E;   /* Or clair   */
+  --white:#FFFFFF;
+
+  --bg:#F2F4F9;
+  --surface:#FFFFFF;
+  --text:#0D1A33;
+  --muted:#56627C;
+  --line:#E1E6F0;
+  --soft:#EEF2FA;
+
+  --ok:#177A4D;  --ok-bg:#E6F5EC;
+  --err:#B3261E; --err-bg:#FCEBEA;
+  --pend-bg:#FFF8E1; --pend-text:#6A5100;
+
+  --radius:18px; --radius-sm:12px;
+  --shadow:0 1px 3px rgba(7,26,61,.06), 0 4px 14px rgba(7,26,61,.06);
+  --shadow-lg:0 12px 32px rgba(7,26,61,.16);
+  --grad:linear-gradient(145deg,var(--royal) 0%,var(--night) 78%);
+  --grad-gold:linear-gradient(90deg,var(--gold) 0%,var(--gold-light) 100%);
+
+  --nav-h:66px;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{scroll-padding-top:calc(64px + var(--safe-t))}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;min-height:100vh;
+}
+a{color:var(--royal)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:8px}
+h1,h2,h3{font-family:var(--serif);line-height:1.2;margin:0}
+p{margin:.5em 0}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- Animations discrètes ---------- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.01)}100%{transform:scale(1)}}
+.fade{animation:fadeUp .28s ease both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- Boutons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  min-height:50px;padding:.7em 1.3em;border-radius:14px;border:0;cursor:pointer;
+  font-weight:700;font-size:1rem;text-decoration:none;letter-spacing:.01em;
+  transition:transform .12s ease, box-shadow .2s ease, background .2s;
+}
+.btn:active{transform:scale(.98)}
+.btn-block{display:flex;width:100%}
+.btn-gold{background:var(--grad-gold);color:var(--night);box-shadow:0 4px 14px rgba(212,175,55,.35)}
+.btn-royal{background:var(--royal);color:#fff}
+.btn-royal:hover{background:#0a3480}
+.btn-ghost{background:transparent;color:var(--royal);border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--royal)}
+.btn-wa{background:transparent;color:#fff;border:1.5px solid rgba(245,215,110,.7)}
+.btn-wa:hover{background:rgba(245,215,110,.1)}
+.btn-danger{background:transparent;color:var(--err);border:1.5px solid #f0c9c6}
+.btn-sm{min-height:40px;padding:.45em .95em;font-size:.9rem;border-radius:11px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+@media(min-width:560px){.btn-row.inline{flex-direction:row;flex-wrap:wrap}.btn-row.inline .btn{flex:1}}
+
+/* ============================================================
+   Écrans plein écran (accès, membre, bienvenue)
+   ============================================================ */
+.fullscreen{
+  min-height:100vh;min-height:100dvh;background:var(--grad);color:#fff;
+  padding:calc(24px + var(--safe-t)) 20px calc(24px + var(--safe-b));
+  display:flex;justify-content:center;
+}
+.fs-inner{width:100%;max-width:440px;display:flex;flex-direction:column}
+.brand{display:flex;justify-content:center;margin:8px 0 18px}
+.fs-title{font-size:1.75rem;text-align:center;font-weight:700;letter-spacing:.01em}
+.fs-title span{display:block;font-family:var(--sans);font-size:.8rem;letter-spacing:.34em;color:var(--gold-light);margin-top:6px;font-weight:700}
+.fs-sub{text-align:center;color:#C9D4EC;margin:12px 0 0;font-size:.95rem}
+.fs-intro{text-align:center;color:#E6ECF8;font-family:var(--serif);font-style:italic;font-size:1.02rem;margin:18px 4px 22px;line-height:1.6}
+.glass{
+  background:rgba(255,255,255,.06);border:1px solid rgba(245,215,110,.28);
+  border-radius:var(--radius);padding:22px 20px;backdrop-filter:blur(6px);
+}
+.glass h2{font-family:var(--sans);font-size:1rem;letter-spacing:.08em;color:var(--gold-light);margin-bottom:8px}
+.glass p{color:#DCE4F4;font-size:.95rem}
+.glass .small{color:#AFBEDD}
+.fs-foot{margin-top:auto;padding-top:28px;text-align:center;font-size:.76rem;color:#8FA2C9;line-height:1.6}
+.fs-foot a{color:#B8C6E3}
+.field{display:block;margin:14px 0}
+.field span{display:block;font-weight:600;font-size:.92rem;margin-bottom:6px}
+.input{
+  width:100%;min-height:52px;padding:.75em .95em;font-size:16px;border-radius:12px;
+  border:1.5px solid var(--line);background:#fff;color:var(--text);font-family:inherit;
+}
+.input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,.25)}
+.glass .input{border-color:rgba(255,255,255,.2)}
+.form-error{background:var(--err-bg);color:var(--err);border-radius:10px;padding:.6em .8em;font-size:.9rem;margin-top:10px}
+.back-link{align-self:flex-start;color:#C9D4EC;text-decoration:none;font-size:.95rem;padding:8px 0;margin-bottom:6px}
+
+/* ============================================================
+   Coquille de l'application
+   ============================================================ */
+.layout{min-height:100vh}
+.sidebar{display:none}
+.topbar{
+  position:sticky;top:0;z-index:20;background:var(--night);color:#fff;
+  padding:calc(8px + var(--safe-t)) 12px 8px;display:flex;align-items:center;gap:10px;min-height:58px;
+  box-shadow:0 1px 0 rgba(212,175,55,.35);
+}
+.tb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;min-width:0}
+.tb-brand b{font-family:var(--serif);font-size:1.02rem;font-weight:700;white-space:nowrap}
+.tb-brand small{display:block;font-size:.66rem;letter-spacing:.24em;color:var(--gold-light);font-weight:700}
+.tb-title{flex:1;min-width:0;font-weight:700;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{
+  width:44px;height:44px;border-radius:12px;border:0;background:rgba(255,255,255,.08);color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;font-size:1.15rem;cursor:pointer;text-decoration:none;flex-shrink:0;
+}
+.icon-btn:hover{background:rgba(255,255,255,.15)}
+.spacer{flex:1}
+
+.view{max-width:780px;margin:0 auto;padding:18px 16px calc(var(--nav-h) + var(--safe-b) + 28px)}
+
+.bottomnav{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);
+  padding:0 4px var(--safe-b);display:grid;grid-template-columns:repeat(5,1fr);height:calc(var(--nav-h) + var(--safe-b));
+  box-shadow:0 -4px 16px rgba(7,26,61,.06);
+}
+.bn-item{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;
+  color:var(--muted);font-size:.72rem;font-weight:600;position:relative;
+}
+.bn-item .ico{font-size:1.25rem;line-height:1;filter:grayscale(.6);opacity:.75}
+.bn-item[aria-current="page"]{color:var(--royal)}
+.bn-item[aria-current="page"] .ico{filter:none;opacity:1}
+.bn-item[aria-current="page"]::before{content:"";position:absolute;top:0;width:34px;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
+
+/* Écrans larges : menu latéral */
+@media(min-width:960px){
+  .layout{display:grid;grid-template-columns:268px 1fr}
+  .sidebar{
+    display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:auto;
+    background:var(--night);color:#fff;padding:22px 14px;
+  }
+  .sb-brand{display:flex;align-items:center;gap:12px;padding:0 8px 18px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px;text-decoration:none;color:#fff}
+  .sb-brand b{font-family:var(--serif);font-size:1.1rem}
+  .sb-brand small{display:block;font-size:.68rem;letter-spacing:.26em;color:var(--gold-light);font-weight:700}
+  .sb-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;color:#C9D4EC;text-decoration:none;font-size:.95rem}
+  .sb-link:hover{background:rgba(255,255,255,.06);color:#fff}
+  .sb-link[aria-current="page"]{background:rgba(212,175,55,.14);color:var(--gold-light)}
+  .sb-foot{margin-top:auto;padding:14px 10px 0;font-size:.74rem;color:#7F93BD;line-height:1.55}
+  .bottomnav{display:none}
+  .topbar .tb-brand{display:none}
+  .view{padding:28px 32px 48px}
+}
+
+/* ============================================================
+   Composants
+   ============================================================ */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px;border:1px solid rgba(225,230,240,.7)}
+.card-dark{background:var(--grad);color:#fff;border:0}
+.card-dark .muted{color:#BFCBE6}
+.eyebrow{font-size:.78rem;font-weight:700;color:var(--royal);letter-spacing:.06em;margin-bottom:6px}
+.card-dark .eyebrow{color:var(--gold-light)}
+.page-head{margin:4px 0 18px}
+.page-head h1{font-size:1.6rem;color:var(--night)}
+.page-head p{color:var(--muted);margin-top:6px}
+
+.bar{height:10px;border-radius:99px;background:#E4E9F3;overflow:hidden}
+.card-dark .bar{background:rgba(255,255,255,.14)}
+.bar>span{display:block;height:100%;border-radius:99px;background:var(--grad-gold);transition:width .6s ease}
+.bar.sm{height:6px}
+
+.hello{margin:2px 0 16px}
+.hello .hi{color:var(--muted);font-size:.95rem}
+.hello h1{font-size:1.55rem;color:var(--night);margin-top:2px}
+.hello p{color:var(--muted);margin-top:4px;font-size:.93rem}
+
+.prog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.prog-top .big{font-family:var(--serif);font-size:2.2rem;font-weight:700;color:var(--gold-light);line-height:1}
+.prog-stats{display:flex;gap:18px;margin-top:12px;font-size:.9rem;flex-wrap:wrap}
+.prog-stats b{color:#fff}
+
+.continue{display:flex;gap:14px;align-items:center}
+.continue .num{
+  width:52px;height:52px;border-radius:14px;background:var(--soft);color:var(--royal);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:1.3rem;
+}
+.continue .txt{flex:1;min-width:0}
+.continue .txt b{display:block;color:var(--night);line-height:1.3}
+
+.searchbar{
+  display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:0 16px;border-radius:14px;
+  background:#fff;border:1.5px solid var(--line);color:var(--muted);text-decoration:none;margin-bottom:16px;font-size:.98rem;
+}
+.searchbar:hover{border-color:var(--gold)}
+
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:640px){.tiles{grid-template-columns:repeat(3,1fr)}}
+.tile{
+  background:#fff;border-radius:var(--radius);padding:16px 14px;text-decoration:none;color:var(--text);
+  border:1px solid rgba(225,230,240,.8);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;
+  transition:transform .15s ease, box-shadow .2s ease;min-height:120px;
+}
+.tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.tile .ic{width:40px;height:40px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:1.25rem}
+.tile b{font-size:.95rem;color:var(--night)}
+.tile span{font-size:.83rem;color:var(--muted);line-height:1.4}
+
+.section-title{font-family:var(--sans);font-size:.82rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin:22px 0 10px}
+
+/* Liste des chapitres */
+.ch-list{display:flex;flex-direction:column;gap:10px}
+.ch-item{
+  display:flex;align-items:center;gap:14px;background:#fff;border-radius:16px;padding:14px;
+  border:1px solid rgba(225,230,240,.9);box-shadow:var(--shadow);text-decoration:none;color:var(--text);
+}
+.ch-item .n{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:700;font-size:1.1rem;background:var(--soft);color:var(--royal);
+}
+.ch-item.done .n{background:var(--ok-bg);color:var(--ok)}
+.ch-item.locked{opacity:.62}
+.ch-item.locked .n{background:#EEF0F4;color:#8A93A6}
+.ch-item .t{flex:1;min-width:0}
+.ch-item .t b{display:block;font-size:.97rem;color:var(--night);line-height:1.3}
+.ch-item .t small{color:var(--muted);font-size:.8rem}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.74rem;font-weight:700;white-space:nowrap}
+.pill-ok{background:var(--ok-bg);color:var(--ok)}
+.pill-go{background:#FFF4D2;color:#7A5B00}
+.pill-lock{background:#EEF0F4;color:#6B7486}
+
+/* Chapitre */
+.ch-hero{background:var(--grad);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:16px;position:relative}
+.ch-hero .eyebrow{color:var(--gold-light)}
+.ch-hero h1{font-size:1.5rem;padding-right:52px}
+.ch-hero .fav{position:absolute;top:14px;right:14px}
+.fav-btn{
+  width:44px;height:44px;border-radius:12px;border:0;cursor:pointer;background:rgba(255,255,255,.1);
+  font-size:1.2rem;display:inline-flex;align-items:center;justify-content:center;color:var(--gold-light);
+}
+.fav-btn[aria-pressed="true"]{background:rgba(212,175,55,.25)}
+.sec{background:#fff;border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1px solid rgba(225,230,240,.8);box-shadow:var(--shadow)}
+.sec-h{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.86rem;letter-spacing:.07em;color:var(--royal);margin-bottom:10px}
+.sec-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.lesson{font-family:var(--serif);font-size:1.06rem;line-height:1.7}
+.doc-list{padding-left:0;list-style:none;counter-reset:d;margin:10px 0}
+.doc-list li{counter-increment:d;position:relative;padding:10px 0 10px 44px;border-bottom:1px dashed var(--line)}
+.doc-list li:last-child{border-bottom:0}
+.doc-list li::before{
+  content:counter(d);position:absolute;left:0;top:9px;width:30px;height:30px;border-radius:9px;
+  background:var(--night);color:var(--gold-light);font-family:var(--sans);font-weight:700;font-size:.85rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.keypoints{list-style:none;padding:0;margin:0}
+.keypoints li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--soft)}
+.keypoints li:last-child{border-bottom:0}
+.keypoints .chk{color:var(--gold);font-weight:900;margin-top:1px}
+.keypoints .kp-t{flex:1}
+.star-sm{border:0;background:none;cursor:pointer;font-size:1.05rem;padding:4px 6px;min-width:36px;min-height:36px;border-radius:8px;color:#B5BCCB}
+.star-sm[aria-pressed="true"]{color:var(--gold)}
+.terms{display:grid;gap:10px}
+.term{background:var(--soft);border-radius:12px;padding:12px 14px}
+.term b{color:var(--night);display:block;margin-bottom:2px}
+.term span{font-size:.93rem;color:#34405A}
+.pending{
+  background:var(--pend-bg);color:var(--pend-text);border:1.5px dashed #E3C66A;border-radius:12px;
+  padding:10px 12px;font-family:var(--sans);font-size:.9rem;margin:10px 0;line-height:1.45;
+}
+.source{font-size:.86rem;color:var(--muted)}
+.prayer{background:linear-gradient(180deg,#F7F9FE,#fff);border-left:3px solid var(--gold);border-radius:0 12px 12px 0;padding:10px 16px;margin:12px 0;font-family:var(--serif);font-size:1.05rem;line-height:1.75}
+.pr-mark{font-family:var(--sans);font-size:.74rem;font-weight:800;letter-spacing:.08em;color:var(--royal);margin:8px 0 2px}
+.sub-h{font-family:var(--sans);font-size:.9rem;font-weight:800;color:var(--night);margin:16px 0 4px}
+.kcc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.kcc{background:var(--night);color:#fff;border-radius:14px;padding:12px 8px;text-align:center;font-family:var(--sans)}
+.kcc span{display:block;font-family:var(--serif);font-size:1.8rem;color:var(--gold-light);font-weight:700;line-height:1.1}
+.kcc b{display:block;font-size:.95rem;margin-top:4px}
+.kcc small{display:block;color:#C9D4EC;font-size:.74rem;line-height:1.35;margin-top:4px}
+.test-cta{border:1.5px solid rgba(212,175,55,.5);background:linear-gradient(180deg,#FFFDF5,#fff)}
+.ch-nav{display:flex;gap:10px;margin-top:6px}
+.ch-nav .btn{flex:1}
+
+/* QCM */
+.q-top{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:8px}
+.q-tag{display:inline-block;margin:14px 0 0;font-size:.76rem;font-weight:700;color:var(--royal);background:var(--soft);border-radius:99px;padding:3px 10px}
+.q-text{font-size:1.2rem;color:var(--night);margin:12px 0 16px;line-height:1.4}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:54px;padding:10px 14px;cursor:pointer;
+  background:#fff;border:1.5px solid var(--line);border-radius:14px;font-size:.98rem;line-height:1.4;transition:border-color .15s, background .15s;
+}
+.opt:hover:not([disabled]){border-color:var(--royal)}
+.opt .l{width:30px;height:30px;border-radius:9px;background:var(--soft);color:var(--royal);font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem}
+.opt.correct{border-color:var(--ok);background:var(--ok-bg)}
+.opt.correct .l{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--err);background:var(--err-bg)}
+.opt.wrong .l{background:var(--err);color:#fff}
+.opt[disabled]{cursor:default}
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tf .opt{justify-content:center;font-weight:700}
+.match-row{display:grid;gap:6px;padding:10px 0;border-bottom:1px solid var(--soft)}
+.match-row b{color:var(--night);font-size:.95rem}
+.match-row select{min-height:48px}
+.match-row.ok select{border-color:var(--ok);background:var(--ok-bg)}
+.match-row.ko select{border-color:var(--err);background:var(--err-bg)}
+.feedback{border-radius:14px;padding:14px;margin-top:16px;animation:pop .25s ease}
+.feedback.ok{background:var(--ok-bg);border:1px solid #BFE3CE}
+.feedback.ko{background:var(--err-bg);border:1px solid #F1C7C3}
+.fb-title{font-weight:800;font-size:1.02rem}
+.feedback.ok .fb-title{color:var(--ok)}
+.feedback.ko .fb-title{color:var(--err)}
+.fb-ans{font-size:.93rem;margin-top:4px}
+.feedback p{font-size:.92rem;color:#3A4560}
+.result{text-align:center;padding:10px 0}
+.result .score{font-family:var(--serif);font-size:3rem;font-weight:700;color:var(--night);line-height:1}
+.result .pct{color:var(--royal);font-weight:800;margin-top:6px}
+.result .msg{font-family:var(--serif);font-size:1.15rem;margin:10px 0 4px;color:var(--night)}
+
+/* Statistiques */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:640px){.stats{grid-template-columns:repeat(3,1fr)}}
+.stat{background:#fff;border-radius:16px;padding:14px;border:1px solid rgba(225,230,240,.9);box-shadow:var(--shadow)}
+.stat small{color:var(--muted);font-size:.8rem;font-weight:600;display:block}
+.stat b{font-family:var(--serif);font-size:1.55rem;color:var(--night);display:block;margin-top:2px}
+
+/* Chronologie */
+.timeline{position:relative;margin:6px 0 0 6px;padding-left:24px;border-left:2px solid rgba(212,175,55,.6)}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-item::before{content:"";position:absolute;left:-32px;top:20px;width:14px;height:14px;border-radius:50%;background:var(--gold);border:3px solid var(--bg)}
+.tl-date{font-weight:800;color:var(--royal);font-size:.88rem;letter-spacing:.03em}
+.tl-title{font-family:var(--serif);font-size:1.05rem;color:var(--night);margin-top:2px}
+
+/* Recherche */
+.results{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.res{display:block;background:#fff;border-radius:14px;padding:14px;text-decoration:none;color:var(--text);border:1px solid var(--line)}
+.res:hover{border-color:var(--royal)}
+.res b{color:var(--night)}
+.res p{font-size:.9rem;color:var(--muted);margin:4px 0 0}
+mark{background:rgba(245,215,110,.6);color:inherit;border-radius:3px;padding:0 2px}
+
+/* Menu */
+.menu-list{background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
+.menu-list a{display:flex;align-items:center;gap:14px;padding:14px 16px;min-height:54px;text-decoration:none;color:var(--text);border-bottom:1px solid var(--soft)}
+.menu-list a:last-child{border-bottom:0}
+.menu-list a:hover{background:var(--soft)}
+.menu-list .mi{width:28px;text-align:center;font-size:1.15rem}
+.menu-list .chev{margin-left:auto;color:#A5AEC0}
+.profile{display:flex;align-items:center;gap:14px}
+.avatar{width:50px;height:50px;border-radius:50%;background:var(--grad-gold);color:var(--night);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;flex-shrink:0}
+
+.empty{text-align:center;padding:30px 16px;color:var(--muted)}
+.empty .e-ic{font-size:2.2rem}
+
+/* Pied de page discret */
+.app-footer{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);text-align:center;font-size:.76rem;color:#7C87A0;line-height:1.7}
+.app-footer .fb{font-family:var(--serif);font-weight:700;color:var(--muted);font-size:.84rem}
+.app-footer a{color:#6A7690}
+
+/* Toasts (micro-interactions) */
+#toasts{position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + var(--safe-b) + 12px);z-index:50;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
+@media(min-width:960px){#toasts{bottom:24px}}
+.toast{background:var(--night);color:#fff;padding:10px 18px;border-radius:99px;font-size:.92rem;font-weight:600;box-shadow:var(--shadow-lg);animation:fadeUp .25s ease;border:1px solid rgba(212,175,55,.4);max-width:100%}
+
+.modal-bg{position:fixed;inset:0;z-index:60;background:rgba(7,26,61,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:var(--radius);padding:20px;max-width:380px;width:100%;box-shadow:var(--shadow-lg);animation:pop .2s ease}
+.modal p{margin:0 0 6px;font-size:1rem}
+.final-hero{text-align:center;padding:28px 18px}
+.final-hero .medal{font-size:3rem}
+.final-hero h1{font-size:1.7rem;margin-top:6px}
+.contact-num{font-size:.9rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="app" aria-live="off"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ======================================================================
+   [CONFIG] Paramètres généraux — modifiez ici
+   ====================================================================== */
+
+/* Numéro WhatsApp du créateur, format international SANS « + » ni espaces.
+   Vérifiez le numéro avant publication (actuel : +243 840 238 592). */
+const WHATSAPP_NUMBER = "243840238592";
+
+const CONFIG = {
+  APP_NAME: "JE SUIS KCCiste – FORMATION",
+  CREATOR: "Prédicateur Reagan MBUMBA",
+  WHATSAPP_DISPLAY: "+243 840 238 592",
+  PARISH: "Paroisse de Pika Pende",
+  CHURCH: "Église Bon Nouveau Message (KCC)",
+  GROUP: "Je suis KCCiste",
+  GREETING: "Kimiaa",       // salutation affichée dans l'application (à la place de « Bonjour »)
+  YEAR: "2026",
+  /* Code d'accès demandé aux membres (majuscules, accents et espaces ignorés).
+     ⚠ Visible dans le code source : ce n'est PAS une vraie sécurité.
+     Pour changer le code, modifiez uniquement cette ligne. */
+  ACCESS_CODE: "Je suis KCCiste",
+  PASS_SCORE: 60,          // % minimum au test pour terminer un chapitre
+  FINAL_EXAM_SIZE: 30,     // nombre de questions de la révision générale (20 à 30)
+  MSG_ACCESS: "Bonjour Prédicateur Reagan MBUMBA, je souhaite obtenir l'accès à l'application JE SUIS KCCiste – FORMATION.",
+  MSG_CONTACT: "Bonjour Prédicateur Reagan MBUMBA, je suis utilisateur de l'application JE SUIS KCCiste – FORMATION et je souhaite obtenir des informations."
+};
+
+/* Construit automatiquement le lien WhatsApp (iPhone, Android, navigateur). */
+function waLink(message) {
+  return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message);
+}
+
+/* Texte affiché lorsque le document doctrinal n'a pas encore été intégré. */
+const PENDING = "[CONTENU À COMPLÉTER À PARTIR DU DOCUMENT DOCTRINAL]";
+const pend = (label) => `<div class="pending">📝 ${label ? label + " — " : ""}${PENDING}</div>`;
+
+/* ======================================================================
+   [LOGO] Logo vectoriel « JE SUIS / KCCiste / FORMATION »
+   Remplacement par une image : retournez  `<img src="logo.png" width="${size}" height="${size}" alt="...">`
+   ====================================================================== */
+let _logoN = 0;
+function logoSVG(size) {
+  const id = "lg" + (++_logoN);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120" role="img" aria-label="Logo JE SUIS KCCiste FORMATION" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B3D91"/><stop offset="1" stop-color="#071A3D"/></linearGradient></defs>
+  <rect x="3" y="3" width="114" height="114" rx="26" fill="url(#${id})" stroke="#D4AF37" stroke-width="3"/>
+  <text x="60" y="41" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="3" fill="#FFFFFF">JE SUIS</text>
+  <text x="60" y="70" text-anchor="middle" font-family="Georgia,serif" font-size="25" font-weight="700" fill="#F5D76E">KCCiste</text>
+  <rect x="17" y="81" width="86" height="20" rx="10" fill="#D4AF37"/>
+  <text x="60" y="95.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="10.5" font-weight="800" letter-spacing="2" fill="#071A3D">FORMATION</text>
+</svg>`;
+}
+
+/* ======================================================================
+   [CHAPITRES] Contenu de la formation
+   ----------------------------------------------------------------------
+   Chaque chapitre : id, icon, title, summary, lesson (HTML), keyPoints[],
+   understand (HTML), terms[{term, def}], source, questions[].
+   Types de questions :
+     { type:"mcq",   q, options:[...], answer:index, explain }
+     { type:"tf",    q, answer:true|false, explain }
+     { type:"short", q, accept:["réponses acceptées"], display:"réponse affichée", explain }
+     { type:"match", q, pairs:[["gauche","droite"], ...], explain }
+   IMPORTANT : les textes doctrinaux proviennent uniquement du document PDF source.
+   Les parties absentes sont signalées par PENDING (à compléter).
+   « (Sens courant) » = définition de dictionnaire, pas une définition doctrinale.
+   ====================================================================== */
+/* Source unique : « Les éléments doctrinaux et de l'enseignement de l'Église
+   Bon Nouveau Message (KCC) – en français » (Matière des néophytes, 2023).
+   Seules les coquilles typographiques évidentes du PDF ont été corrigées
+   (ex. « { » → « à », « c'st » → « c'est », « me péchés » → « mes péchés »). */
+const DOC = "Les éléments doctrinaux et de l'enseignement de l'Église Bon Nouveau Message (KCC) – en français";
+const src = (pages) => `${DOC}, ${pages}.`;
+
+const TEN = [
+  "C’est moi l’Eternel qui suis votre Dieu, tu n’auras point d’autre dieu que moi ;",
+  "Tu ne te feras point d’images taillées, tu ne te prosterneras point devant elles et tu ne les serviras point ;",
+  "Tu n’invoqueras point le Nom de l’Eternel Ton Dieu en vain ou à l’appui du mensonge ;",
+  "Souviens-toi du jour du sabbat et sanctifie-le ;",
+  "Honore ton père et ta mère, afin que tu vives longtemps sur la terre ;",
+  "Tu ne tueras point ;",
+  "Tu ne commettras point d’adultère ;",
+  "Tu ne voleras point ;",
+  "Tu ne mentiras point ;",
+  "Tu ne convoiteras ni l’homme, ni la femme, ni quelque chose appartenant à ton prochain."
+];
+const SEVEN = [
+  "Ne pas boire des boissons enivrantes ni fumer ;",
+  "Ne point consulter les féticheurs, les devins ni les morts ;",
+  "Participer au culte du sabbat et des jours saints ;",
+  "Participer à la fête de la Moisson et à celle de Dons Pacifiques annuelles ;",
+  "Reconnaître que le mariage est une union sacrée à sauvegarder ;",
+  "Demeurer saint ;",
+  "Aimer l’Eglise, la protéger et la soutenir."
+];
+const FAITH = [
+  "Je crois en l’Eternel Dieu de qui toute vie découle. Il est Un, Seigneur des seigneurs, Créateur du ciel, de la terre et de tout ce qui s’y trouve ;",
+  "Je crois au salut que, par sa grâce, sa miséricorde et à son Nom, l’Eternel Dieu a offert à toute l’humanité par son Alliance et sa Loi ;",
+  "Je crois à la Sainte Parole de Dieu révélée à ses prophètes pour le salut de l’humanité ;",
+  "Je crois à l’immortalité de l’âme et à la vie éternelle ;",
+  "Je crois à la rémission des péchés par l’Eternel, par l’exécution de sa Loi et à son Nom ;",
+  "Je crois au jugement divin, à la récompense des justes et au châtiment éternel des incrédules ;",
+  "Je crois que Le Oint de Dieu DIZOLELE MPUNGU WAFIDUSUA Isaac, est Prophète venu de l’Eternel Dieu ;",
+  "Je crois que l’Eglise Bon Nouveau Message (KCC) vient de Dieu, qu’elle est une, Sainte et Prophétique."
+];
+const FIVE = [
+  "Révéler à l’humanité l’unique vrai Dieu, l’Eternel ;",
+  "Convertir les âmes perdues à l’Eternel Dieu ;",
+  "Amener les hommes à obéir à l’alliance de l’Eternel Dieu, à pratiquer le droit et la vertu ;",
+  "Préserver les adeptes contre les fausses doctrines ;",
+  "Apprendre aux fidèles à vivre dans la crainte de l’Eternel Dieu afin de mériter le royaume de cieux."
+];
+const olist = (arr) => `<ol class="doc-list">${arr.map(t => `<li>${t}</li>`).join("")}</ol>`;
+
+/* Textes liturgiques (verbatim) */
+const PRAYER_FIRST_PURIF = `<div class="prayer">
+  <div class="pr-mark">Début de l’aveu</div>
+  <p>Oh ! Eternel, l’Unique Vrai Dieu, Créateur de l’Univers et de tout ce qui s’y trouve</p>
+  <p>Par Ton Saint Nom, Je m’agenouille devant Toi pour confesser mes péchés antérieurement commis en vue d’en obtenir de Toi le pardon pour ma sanctification.</p>
+  <p>Je reconnais que dans mon parcours vital, j’ignorais Ton Saint Nom et Ta Loi, socle du salut de mon âme.</p>
+  <p>Dans cette ignorance, j’ai commis beaucoup des péchés qui m’ont rendu impur et éloigné de Toi.</p>
+  <div class="pr-mark">Fin de l’aveu</div>
+  <p>Par Ton Saint Nom, je Te demande, Oh Eternel Dieu, de me pardonner de tous mes manquements antérieurement commis.</p>
+  <p><strong>Qu’il en soit ainsi par Ton Saint Nom.</strong></p></div>`;
+const PRAYER_PURIF = `<div class="prayer">
+  <div class="pr-mark">Début de l’aveu</div>
+  <p>Par Ton Saint Nom, Je m’agenouille devant Toi pour confesser mes péchés afin que je sois pardonné.</p>
+  <div class="pr-mark">Fin de l’aveu</div>
+  <p>Par Ton Saint Nom, je Te demande, oh Eternel, de me pardonner de tous mes manquements.</p>
+  <p><strong>Qu’il en soit ainsi par Ton Saint Nom.</strong></p></div>`;
+const PRAYER_ONCTION = `<div class="prayer">
+  <p>L’Eternel est notre Dieu,<br>L’Eternel est Un,<br>J’aimerai et servirai l’Eternel mon Dieu</p>
+  <p>– De tout mon cœur,<br>– De toute mon âme et<br>– De toute ma force</p>
+  <p><strong>Qu’il en soit ainsi au nom de l’Eternel.</strong></p></div>`;
+
+/* [DATES] Chronologie — texte du document */
+const DATES = [
+  { date: "01 mars 1930",  title: "Naissance du Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac" },
+  { date: "08 mars 1955",  title: "Naissance de l’Eglise Bon Nouveau Message au Camp Teli à Forakam (Seke Banza)" },
+  { date: "12 avril 1958", title: "Apparition de KCC" },
+  { date: "30 avril 1980", title: "Reconnaissance Juridique" },
+  { date: "15 avril 2003", title: "Oracle de l’Eternel à Son Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac disant : « Quels que soient les miracles qu’il opère, un homme ne peut être Dieu »." },
+  { date: "02 août 2005",  title: "Changement de la dénomination de l’Eglise Universelle de Douze Apôtres en l’Eglise Bon Nouveau Message (KCC)",
+    note: "Ce changement entraînera aussi celui de la dénomination des organes et branches au sein de l’Eglise :",
+    items: ["Conseil de Douze en Conseil Paroissial (organe spirituel)", "AMDAESS en l’AFEBNM (branche des mamans)", "JEUDA en JEBNM (branche de la jeunesse)", "CIRAPRO en CIRPRO (regroupement local d’entités)", "UVA en UVPRO (chorale centrale de l’Eglise)"] },
+  { date: "20 mars 2018",  title: "Institution de la fête de la Sainte Convocation ou fête de la promulgation de la Loi par Lui-même l’Eternel." }
+];
+function timelineHTML() {
+  return `<div class="timeline">${DATES.map(d => `
+    <div class="tl-item card">
+      <div class="tl-date">${d.date}</div>
+      <div class="tl-title">${d.title}</div>
+      ${d.note ? `<p class="small muted" style="margin-top:8px">${d.note}</p><ul class="small">${d.items.map(i => `<li>${i}</li>`).join("")}</ul>` : ""}
+    </div>`).join("")}</div>`;
+}
+
+const STUDY_TIPS = `<ul>
+  <li>Lisez le texte lentement, élément par élément, dans l'ordre.</li>
+  <li>Mémorisez d'abord le numéro et le début de chaque phrase, puis la phrase complète.</li>
+  <li>Relisez régulièrement la rubrique « À retenir ».</li>
+  <li>Faites le test : les explications vous aident à corriger vos erreurs.</li>
+</ul>`;
+
+const CHAPTERS = [
+  /* ---------------- CHAPITRE 1 ---------------- */
+  {
+    id: 1, icon: "🕊️", title: "Introduction au KCCisme",
+    summary: "Vue d'ensemble de l'enseignement doctrinal de l'Église",
+    lesson: `<p>Le document de formation s'intitule <strong>« Les éléments doctrinaux et de l'enseignement de l'Église Bon Nouveau Message (KCC) »</strong>. Il présente :</p>
+      <ul><li>les Dix Commandements de l'Éternel Dieu ;</li><li>les Sept Commandements de l'Église ;</li><li>la Profession de Foi ;</li><li>les cinq objectifs de l'enseignement religieux de l'Église ;</li><li>les Sacrements de l'Église (paroles de purification et d'onction) ;</li><li>la spécificité doctrinale ;</li><li>les dates historiques de l'Église.</li></ul>
+      <p>Selon ce document, la doctrine de l'Église Bon Nouveau Message (KCC) c'est le « Kccisme », et la personne qui croit au Kccisme est appelée « Kcciste ».</p>
+      <p>Le Monothéisme radical est la ligne maîtresse du Kccisme.</p>`,
+    keyPoints: [
+      "Le nom de l'Église : Église Bon Nouveau Message (KCC).",
+      "La doctrine de l'Église Bon Nouveau Message (KCC) c'est le « Kccisme ».",
+      "La personne qui croit au Kccisme est appelée « Kcciste ».",
+      "Le Monothéisme radical est la ligne maîtresse du Kccisme.",
+      "La source de l'enseignement de l'Église, c'est la Bible."
+    ],
+    understand: `<p>Ce premier chapitre donne une vue d'ensemble. Chaque élément est ensuite repris en détail dans les chapitres suivants. Retenez d'abord trois mots : <strong>KCC</strong> (le nom de l'Église), <strong>Kccisme</strong> (sa doctrine) et <strong>Kcciste</strong> (la personne qui croit au Kccisme).</p>`,
+    terms: [
+      { term: "Néophyte", def: "Personne nouvellement entrée dans une communauté religieuse et qui commence sa formation. (Sens courant)" },
+      { term: "Kccisme", def: "La doctrine de l'Église Bon Nouveau Message (KCC)." },
+      { term: "Kcciste", def: "La personne qui croit au Kccisme." },
+      { term: "KCC", def: "« Nkanda Wambote Wampa » : « Bon Nouveau Message » (voir chapitre 12)." }
+    ],
+    source: src("p. 1 à 4 (vue d'ensemble)"),
+    questions: [
+      { type: "mcq", q: "Quel est le nom de l'Église ?", options: ["Église Universelle de Douze Apôtres", "Église Bon Nouveau Message (KCC)", "Église de la Sainte Convocation", "Église du Camp Teli"], answer: 1, explain: "L'Église s'appelle Église Bon Nouveau Message (KCC)." },
+      { type: "tf", q: "La doctrine de l'Église Bon Nouveau Message (KCC) s'appelle le Kccisme.", answer: true, explain: "C'est exact : la doctrine de l'Église c'est le « Kccisme »." },
+      { type: "mcq", q: "Comment appelle-t-on la personne qui croit au Kccisme ?", options: ["Un néophyte", "Un Kcciste", "Un prophète", "Un apôtre"], answer: 1, explain: "La personne qui croit au Kccisme est appelée « Kcciste »." },
+      { type: "mcq", q: "Quelle est la ligne maîtresse du Kccisme ?", options: ["Le Monothéisme radical", "La fête de la Moisson", "La reconnaissance juridique", "Le Conseil Paroissial"], answer: 0, explain: "Le Monothéisme radical est la ligne maîtresse du Kccisme." },
+      { type: "tf", q: "Selon le document, la source de l'enseignement de l'Église est la Bible.", answer: true, explain: "C'est exact : « La source de l'enseignement de l'Église : c'est la Bible »." }
+    ]
+  },
+  /* ---------------- CHAPITRE 2 ---------------- */
+  {
+    id: 2, icon: "📜", title: "Les Dix Commandements de l'Éternel Dieu",
+    summary: "Les dix commandements tels qu'énoncés dans le document",
+    lesson: `<p>Le document de formation énonce ainsi les Dix Commandements de l'Éternel Dieu :</p>${olist(TEN)}`,
+    keyPoints: [
+      "Les commandements de l'Éternel Dieu sont au nombre de dix.",
+      "1er : « C’est moi l’Eternel qui suis votre Dieu, tu n’auras point d’autre dieu que moi. »",
+      "4e : « Souviens-toi du jour du sabbat et sanctifie-le. »",
+      "5e : « Honore ton père et ta mère, afin que tu vives longtemps sur la terre. »",
+      "6e à 9e : « Tu ne tueras point ; Tu ne commettras point d’adultère ; Tu ne voleras point ; Tu ne mentiras point. »",
+      "10e : « Tu ne convoiteras ni l’homme, ni la femme, ni quelque chose appartenant à ton prochain. »"
+    ],
+    understand: `<p>Chaque commandement s'adresse directement au fidèle (« tu »). Pour bien les apprendre :</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Images taillées", def: "Statues ou représentations sculptées. (Sens courant)" },
+      { term: "Invoquer en vain", def: "Prononcer un nom sans raison valable, inutilement. (Sens courant)" },
+      { term: "Adultère", def: "Relation d'une personne mariée avec une autre personne que son conjoint. (Sens courant)" },
+      { term: "Convoiter", def: "Désirer avec envie ce qui appartient à un autre. (Sens courant)" }
+    ],
+    source: src("p. 1"),
+    questions: [
+      { type: "mcq", q: "Combien de commandements de l'Éternel Dieu le document présente-t-il ?", options: ["Sept", "Huit", "Dix", "Douze"], answer: 2, explain: "Le document présente les Dix Commandements de l'Éternel Dieu." },
+      { type: "mcq", q: "Quel est le premier commandement ?", options: ["Tu ne tueras point", "C’est moi l’Eternel qui suis votre Dieu, tu n’auras point d’autre dieu que moi", "Honore ton père et ta mère", "Souviens-toi du jour du sabbat et sanctifie-le"], answer: 1, explain: "Le 1er commandement : « C’est moi l’Eternel qui suis votre Dieu, tu n’auras point d’autre dieu que moi. »" },
+      { type: "tf", q: "Le 4e commandement dit : « Souviens-toi du jour du sabbat et sanctifie-le. »", answer: true, explain: "C'est exact : c'est le texte du 4e commandement." },
+      { type: "short", q: "Complétez le 5e commandement : « Honore ton père et ta mère, afin que tu vives longtemps … »", accept: ["sur la terre", "sur terre", "la terre"], display: "sur la terre", explain: "« Honore ton père et ta mère, afin que tu vives longtemps sur la terre. »" },
+      { type: "match", q: "Associez chaque numéro à son commandement.", pairs: [["6e commandement", "Tu ne tueras point"], ["7e commandement", "Tu ne commettras point d’adultère"], ["8e commandement", "Tu ne voleras point"], ["9e commandement", "Tu ne mentiras point"]], explain: "Les commandements 6 à 9 : ne pas tuer, ne pas commettre d'adultère, ne pas voler, ne pas mentir." },
+      { type: "tf", q: "Le 3e commandement dit : « Tu n’invoqueras point le Nom de l’Eternel Ton Dieu en vain ou à l’appui du mensonge. »", answer: true, explain: "C'est bien le texte du 3e commandement." },
+      { type: "mcq", q: "Que dit le 2e commandement au sujet des images taillées ?", options: ["Qu'il faut les placer dans les maisons", "Tu ne t'en feras point, tu ne te prosterneras point devant elles et tu ne les serviras point", "Qu'elles sont permises le jour du sabbat", "Le 2e commandement ne parle pas des images"], answer: 1, explain: "« Tu ne te feras point d’images taillées, tu ne te prosterneras point devant elles et tu ne les serviras point. »" },
+      { type: "tf", q: "Le 10e commandement parle uniquement des biens matériels du prochain.", answer: false, explain: "Faux : il mentionne « ni l’homme, ni la femme, ni quelque chose appartenant à ton prochain »." }
+    ]
+  },
+  /* ---------------- CHAPITRE 3 ---------------- */
+  {
+    id: 3, icon: "⛪", title: "Les Sept Commandements de l'Église",
+    summary: "Les sept règles de vie données par l'Église",
+    lesson: `<p>Le document de formation énonce ainsi les Sept Commandements de l'Église :</p>${olist(SEVEN)}`,
+    keyPoints: [
+      "Les commandements de l'Église sont au nombre de sept.",
+      "1er : « Ne pas boire des boissons enivrantes ni fumer. »",
+      "2e : « Ne point consulter les féticheurs, les devins ni les morts. »",
+      "3e et 4e : participer au culte du sabbat et des jours saints, ainsi qu'à la fête de la Moisson et à celle de Dons Pacifiques annuelles.",
+      "5e : « Reconnaître que le mariage est une union sacrée à sauvegarder. »",
+      "6e et 7e : « Demeurer saint » ; « Aimer l’Eglise, la protéger et la soutenir. »"
+    ],
+    understand: `<p>Ces sept commandements concernent la vie quotidienne du fidèle et sa participation à la vie de l'Église. Pour les apprendre :</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Boissons enivrantes", def: "Boissons qui rendent ivre, comme les boissons alcoolisées. (Sens courant)" },
+      { term: "Féticheur", def: "Personne qui pratique le culte des fétiches. (Sens courant)" },
+      { term: "Devin", def: "Personne qui prétend connaître l'avenir ou les choses cachées. (Sens courant)" }
+    ],
+    source: src("p. 1"),
+    questions: [
+      { type: "mcq", q: "Combien de commandements de l'Église le document présente-t-il ?", options: ["Cinq", "Sept", "Dix", "Huit"], answer: 1, explain: "Le document présente les Sept Commandements de l'Église." },
+      { type: "tf", q: "Le 1er commandement de l'Église : « Ne pas boire des boissons enivrantes ni fumer. »", answer: true, explain: "C'est exact." },
+      { type: "mcq", q: "Selon le 2e commandement de l'Église, le fidèle ne doit point consulter :", options: ["Les anciens de l'Église", "Les féticheurs, les devins ni les morts", "Les médecins", "Les prédicateurs"], answer: 1, explain: "« Ne point consulter les féticheurs, les devins ni les morts. »" },
+      { type: "short", q: "Complétez le 4e commandement : « Participer à la fête de la … et à celle de Dons Pacifiques annuelles. »", accept: ["moisson", "la moisson"], display: "Moisson", explain: "« Participer à la fête de la Moisson et à celle de Dons Pacifiques annuelles. »" },
+      { type: "tf", q: "Le 5e commandement de l'Église demande de reconnaître que le mariage est une union sacrée à sauvegarder.", answer: true, explain: "C'est exact : « Reconnaître que le mariage est une union sacrée à sauvegarder. »" },
+      { type: "match", q: "Associez chaque numéro à son commandement de l'Église.", pairs: [["1er", "Ne pas boire des boissons enivrantes ni fumer"], ["3e", "Participer au culte du sabbat et des jours saints"], ["6e", "Demeurer saint"], ["7e", "Aimer l’Eglise, la protéger et la soutenir"]], explain: "Relisez la liste complète dans la leçon pour bien mémoriser l'ordre." },
+      { type: "mcq", q: "Que demande le 7e commandement de l'Église ?", options: ["Demeurer saint", "Aimer l’Eglise, la protéger et la soutenir", "Participer à la fête de la Moisson", "Ne pas fumer"], answer: 1, explain: "Le 7e commandement : « Aimer l’Eglise, la protéger et la soutenir. »" }
+    ]
+  },
+  /* ---------------- CHAPITRE 4 ---------------- */
+  {
+    id: 4, icon: "🗣️", title: "La Profession de Foi",
+    summary: "Les huit éléments de la Profession de Foi",
+    lesson: `<p>Le document présente ainsi la Profession de Foi, en huit éléments :</p>${olist(FAITH)}`,
+    keyPoints: [
+      "La Profession de Foi comporte huit éléments ; chacun commence par « Je crois ».",
+      "1er : l'Éternel Dieu, de qui toute vie découle, est Un, Seigneur des seigneurs, Créateur du ciel, de la terre et de tout ce qui s'y trouve.",
+      "3e et 4e : la Sainte Parole de Dieu révélée à ses prophètes ; l'immortalité de l'âme et la vie éternelle.",
+      "6e : le jugement divin, la récompense des justes et le châtiment éternel des incrédules.",
+      "7e : « Le Oint de Dieu DIZOLELE MPUNGU WAFIDUSUA Isaac, est Prophète venu de l’Eternel Dieu. »",
+      "8e : l'Église Bon Nouveau Message (KCC) vient de Dieu ; elle est une, Sainte et Prophétique."
+    ],
+    understand: `<p>La Profession de Foi résume ce que croit le Kcciste. Chaque élément commence par « Je crois ». Pour la retenir, repérez le thème de chaque élément :</p>
+      <ol><li>l'Éternel Dieu ;</li><li>le salut ;</li><li>la Sainte Parole de Dieu ;</li><li>l'immortalité de l'âme et la vie éternelle ;</li><li>la rémission des péchés ;</li><li>le jugement divin ;</li><li>le Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac ;</li><li>l'Église Bon Nouveau Message (KCC).</li></ol>`,
+    terms: [
+      { term: "Profession de foi", def: "Déclaration de ce que l'on croit. (Sens courant)" },
+      { term: "Rémission des péchés", def: "Pardon des péchés. (Sens courant)" },
+      { term: "Incrédules", def: "Personnes qui ne croient pas. (Sens courant)" }
+    ],
+    source: src("p. 1-2"),
+    questions: [
+      { type: "mcq", q: "Combien d'éléments comporte la Profession de Foi ?", options: ["Cinq", "Sept", "Huit", "Dix"], answer: 2, explain: "La Profession de Foi comporte huit éléments." },
+      { type: "short", q: "Complétez : « Je crois en l’Eternel Dieu de qui toute … découle. »", accept: ["vie", "la vie"], display: "vie", explain: "« Je crois en l’Eternel Dieu de qui toute vie découle. »" },
+      { type: "tf", q: "Le 4e élément dit : « Je crois à l’immortalité de l’âme et à la vie éternelle. »", answer: true, explain: "C'est exact." },
+      { type: "mcq", q: "Que dit le 7e élément de la Profession de Foi ?", options: ["Je crois au jugement divin", "Je crois que Le Oint de Dieu DIZOLELE MPUNGU WAFIDUSUA Isaac, est Prophète venu de l’Eternel Dieu", "Je crois à la vie éternelle", "Je crois à la rémission des péchés"], answer: 1, explain: "7e élément : « Je crois que Le Oint de Dieu DIZOLELE MPUNGU WAFIDUSUA Isaac, est Prophète venu de l’Eternel Dieu. »" },
+      { type: "mcq", q: "Selon le 8e élément, l'Église Bon Nouveau Message (KCC) est :", options: ["une, Sainte et Prophétique", "universelle et apostolique", "ancienne et traditionnelle", "le document ne le précise pas"], answer: 0, explain: "« …elle est une, Sainte et Prophétique. »" },
+      { type: "match", q: "Associez chaque élément à son thème.", pairs: [["2e élément", "Le salut offert par l'Alliance et la Loi"], ["3e élément", "La Sainte Parole de Dieu révélée à ses prophètes"], ["5e élément", "La rémission des péchés"], ["6e élément", "Le jugement divin"]], explain: "Relisez les huit éléments dans l'ordre." },
+      { type: "tf", q: "Le 6e élément parle du jugement divin, de la récompense des justes et du châtiment éternel des incrédules.", answer: true, explain: "C'est exact." }
+    ]
+  },
+  /* ---------------- CHAPITRE 5 ---------------- */
+  {
+    id: 5, icon: "🎯", title: "Les cinq objectifs de l'enseignement religieux de l'Église",
+    summary: "Pourquoi l'Église enseigne",
+    lesson: `<p>Le document de formation énonce ainsi les cinq objectifs de l'enseignement religieux de l'Église :</p>${olist(FIVE)}`,
+    keyPoints: [
+      "L'enseignement religieux de l'Église poursuit cinq objectifs.",
+      "1er : « Révéler à l’humanité l’unique vrai Dieu, l’Eternel. »",
+      "2e : « Convertir les âmes perdues à l’Eternel Dieu. »",
+      "3e : « Amener les hommes à obéir à l’alliance de l’Eternel Dieu, à pratiquer le droit et la vertu. »",
+      "4e : « Préserver les adeptes contre les fausses doctrines. »",
+      "5e : « Apprendre aux fidèles à vivre dans la crainte de l’Eternel Dieu afin de mériter le royaume de cieux. »"
+    ],
+    understand: `<p>Ces cinq objectifs expliquent le but de l'enseignement que vous recevez pendant cette formation.</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Convertir", def: "Amener quelqu'un à adopter une foi. (Sens courant)" },
+      { term: "Adeptes", def: "Personnes qui suivent un enseignement ou une religion. (Sens courant)" }
+    ],
+    source: src("p. 2"),
+    questions: [
+      { type: "mcq", q: "Combien d'objectifs l'enseignement religieux de l'Église poursuit-il ?", options: ["Trois", "Cinq", "Sept", "Dix"], answer: 1, explain: "Le document énonce cinq objectifs." },
+      { type: "mcq", q: "Quel est le premier objectif ?", options: ["Préserver les adeptes contre les fausses doctrines", "Révéler à l’humanité l’unique vrai Dieu, l’Eternel", "Convertir les âmes perdues", "Construire des lieux de culte"], answer: 1, explain: "1er objectif : « Révéler à l’humanité l’unique vrai Dieu, l’Eternel. »" },
+      { type: "tf", q: "Un des objectifs est de préserver les adeptes contre les fausses doctrines.", answer: true, explain: "C'est le 4e objectif." },
+      { type: "short", q: "Complétez le 2e objectif : « Convertir les âmes perdues à l’… Dieu. »", accept: ["eternel", "l eternel"], display: "Eternel", explain: "« Convertir les âmes perdues à l’Eternel Dieu. »" },
+      { type: "match", q: "Associez chaque objectif à son numéro.", pairs: [["3e objectif", "Amener les hommes à obéir à l’alliance de l’Eternel Dieu, à pratiquer le droit et la vertu"], ["4e objectif", "Préserver les adeptes contre les fausses doctrines"], ["5e objectif", "Apprendre aux fidèles à vivre dans la crainte de l’Eternel Dieu"]], explain: "Relisez les cinq objectifs dans l'ordre." },
+      { type: "tf", q: "Le 5e objectif parle de vivre dans la crainte de l’Eternel Dieu afin de mériter le royaume de cieux.", answer: true, explain: "C'est exact." }
+    ]
+  },
+  /* ---------------- CHAPITRE 6 ---------------- */
+  {
+    id: 6, icon: "💧", title: "Les Sacrements de l'Église",
+    summary: "Les paroles de purification et d'onction",
+    lesson: `<p>Sous le titre <strong>« Les Sacrements de l'Église »</strong>, le document présente trois paroles :</p>
+      ${olist(["La Parole de la Première Purification", "La Parole de la Purification", "La Parole pour la 1ère Onction"])}
+      <p>Le texte complet de ces paroles est présenté au chapitre 7 (purification) et au chapitre 8 (onction).</p>
+      ${pend("Explication détaillée des sacrements (non fournie dans le document)")}`,
+    keyPoints: [
+      "Sous « Les Sacrements de l'Église », le document présente trois paroles.",
+      "La Parole de la Première Purification et la Parole de la Purification sont deux textes distincts.",
+      "La troisième est la Parole pour la 1ère Onction.",
+      "Les paroles de purification se terminent par « Qu’il en soit ainsi par Ton Saint Nom. »",
+      "La parole d'onction se termine par « Qu’il en soit ainsi au nom de l’Eternel. »"
+    ],
+    understand: `<p>Ce chapitre vous donne le plan : deux paroles de purification et une parole d'onction. Étudiez ensuite chaque texte en détail dans les chapitres 7 et 8.</p>`,
+    terms: [
+      { term: "Purification", def: "Action de rendre pur. (Sens courant)" },
+      { term: "Onction", def: "Action d'oindre, c'est-à-dire d'appliquer de l'huile de façon rituelle. (Sens courant)" }
+    ],
+    source: src("p. 2-3"),
+    questions: [
+      { type: "mcq", q: "Combien de paroles le document présente-t-il sous « Les Sacrements de l'Église » ?", options: ["Une", "Deux", "Trois", "Sept"], answer: 2, explain: "Trois : Première Purification, Purification, 1ère Onction." },
+      { type: "tf", q: "Le document distingue la Parole de la Première Purification et la Parole de la Purification.", answer: true, explain: "Ce sont deux textes distincts." },
+      { type: "mcq", q: "Laquelle de ces paroles figure sous « Les Sacrements de l'Église » ?", options: ["La Parole pour la 1ère Onction", "La parole de la fête de la Moisson", "La parole du Conseil Paroissial", "La parole de la Sainte Convocation"], answer: 0, explain: "Le document présente la Parole pour la 1ère Onction." },
+      { type: "short", q: "Complétez la fin des paroles de purification : « Qu’il en soit ainsi par Ton Saint … »", accept: ["nom"], display: "Nom", explain: "« Qu’il en soit ainsi par Ton Saint Nom. »" },
+      { type: "tf", q: "La Parole pour la 1ère Onction se termine par « Qu’il en soit ainsi au nom de l’Eternel. »", answer: true, explain: "C'est exact." }
+    ]
+  },
+  /* ---------------- CHAPITRE 7 ---------------- */
+  {
+    id: 7, icon: "🌿", title: "La Première Purification",
+    summary: "Parole de la Première Purification et Parole de la Purification",
+    lesson: `<h3 class="sub-h">Parole de la Première Purification</h3>${PRAYER_FIRST_PURIF}
+      <h3 class="sub-h">Parole de la Purification</h3>${PRAYER_PURIF}`,
+    keyPoints: [
+      "Chaque parole comprend un aveu, placé entre « Début de l’aveu » et « Fin de l’aveu », puis une demande de pardon.",
+      "La Première Purification s'adresse à l'Éternel, l'Unique Vrai Dieu, Créateur de l'Univers.",
+      "On y confesse les péchés antérieurement commis en vue d'en obtenir le pardon pour sa sanctification.",
+      "On y reconnaît avoir ignoré le Saint Nom de l'Éternel et Sa Loi, « socle du salut de mon âme ».",
+      "La Parole de la Purification est plus courte : confesser ses péchés afin d'être pardonné.",
+      "Les deux se terminent par « Qu’il en soit ainsi par Ton Saint Nom. »"
+    ],
+    understand: `<p>Les deux paroles ont la même structure :</p>
+      <ol><li><strong>L'aveu</strong> : la personne s'agenouille devant l'Éternel, par Son Saint Nom, et confesse ses péchés.</li>
+      <li><strong>La demande de pardon</strong> : elle demande à l'Éternel de lui pardonner ses manquements.</li>
+      <li><strong>La conclusion</strong> : « Qu’il en soit ainsi par Ton Saint Nom. »</li></ol>
+      <p>La Parole de la Première Purification est plus développée : elle évoque les péchés commis dans l'ignorance du Saint Nom et de la Loi de l'Éternel.</p>
+      ${pend("Moment et déroulement de chaque purification")}`,
+    terms: [
+      { term: "Aveu", def: "Reconnaissance de ses fautes. (Sens courant)" },
+      { term: "Confesser", def: "Déclarer ses péchés. (Sens courant)" },
+      { term: "Sanctification", def: "Action de rendre saint. (Sens courant)" },
+      { term: "Manquements", def: "Fautes, manquements à un devoir. (Sens courant)" }
+    ],
+    source: src("p. 2-3"),
+    questions: [
+      { type: "mcq", q: "Dans la Parole de la Première Purification, la personne s'agenouille pour :", options: ["Chanter un cantique", "Confesser ses péchés antérieurement commis en vue d'en obtenir le pardon", "Recevoir l'onction", "Réciter les commandements"], answer: 1, explain: "« …pour confesser mes péchés antérieurement commis en vue d’en obtenir de Toi le pardon pour ma sanctification. »" },
+      { type: "tf", q: "Dans l'aveu de la Première Purification, la personne reconnaît qu'elle ignorait le Saint Nom de l'Éternel et Sa Loi.", answer: true, explain: "« …j’ignorais Ton Saint Nom et Ta Loi, socle du salut de mon âme. »" },
+      { type: "short", q: "Complétez : « …Ton Saint Nom et Ta Loi, socle du … de mon âme. »", accept: ["salut"], display: "salut", explain: "« …Ta Loi, socle du salut de mon âme. »" },
+      { type: "tf", q: "La Parole de la Purification est plus longue que celle de la Première Purification.", answer: false, explain: "Faux : la Parole de la Purification est la plus courte." },
+      { type: "mcq", q: "Entre quelles mentions se trouve l'aveu ?", options: ["« Début de l’aveu » et « Fin de l’aveu »", "« Amen » et « Alléluia »", "« Premier » et « Dernier »", "Il n'y a pas d'aveu"], answer: 0, explain: "L'aveu est placé entre « Début de l’aveu » et « Fin de l’aveu »." },
+      { type: "mcq", q: "Comment se terminent les paroles de purification ?", options: ["Qu’il en soit ainsi au nom de l’Eternel", "Qu’il en soit ainsi par Ton Saint Nom", "Amen", "Gloire à Dieu"], answer: 1, explain: "« Qu’il en soit ainsi par Ton Saint Nom. »" }
+    ]
+  },
+  /* ---------------- CHAPITRE 8 ---------------- */
+  {
+    id: 8, icon: "🕯️", title: "La Parole de la Première Onction",
+    summary: "Le texte de la Parole pour la 1ère Onction",
+    lesson: `<h3 class="sub-h">Parole pour la 1ère Onction</h3>${PRAYER_ONCTION}`,
+    keyPoints: [
+      "« L’Eternel est notre Dieu, L’Eternel est Un. »",
+      "« J’aimerai et servirai l’Eternel mon Dieu »",
+      "… de tout mon cœur, de toute mon âme et de toute ma force.",
+      "Conclusion : « Qu’il en soit ainsi au nom de l’Eternel. »"
+    ],
+    understand: `<p>La parole se déroule en trois temps :</p>
+      <ol><li><strong>Une proclamation</strong> : l'Éternel est notre Dieu, l'Éternel est Un.</li>
+      <li><strong>Un engagement</strong> : aimer et servir l'Éternel de tout son cœur, de toute son âme et de toute sa force.</li>
+      <li><strong>La conclusion</strong> : « Qu’il en soit ainsi au nom de l’Eternel. »</li></ol>
+      ${pend("Déroulement de la 1ère Onction")}`,
+    terms: [
+      { term: "Onction", def: "Action d'oindre, c'est-à-dire d'appliquer de l'huile de façon rituelle. (Sens courant)" }
+    ],
+    source: src("p. 3"),
+    questions: [
+      { type: "short", q: "Complétez : « L’Eternel est notre Dieu, L’Eternel est … »", accept: ["un"], display: "Un", explain: "« L’Eternel est notre Dieu, L’Eternel est Un. »" },
+      { type: "mcq", q: "Complétez : « J’aimerai et servirai l’Eternel mon Dieu de tout mon cœur, de toute mon âme et… »", options: ["de toute ma famille", "de toute ma force", "de toute ma voix", "de tout mon temps"], answer: 1, explain: "« …De toute ma force. »" },
+      { type: "tf", q: "Dans cette parole, le fidèle dit : « J’aimerai et servirai l’Eternel mon Dieu ».", answer: true, explain: "C'est exact." },
+      { type: "mcq", q: "Comment se termine la Parole pour la 1ère Onction ?", options: ["Qu’il en soit ainsi par Ton Saint Nom", "Qu’il en soit ainsi au nom de l’Eternel", "Amen", "Ainsi soit-il"], answer: 1, explain: "« Qu’il en soit ainsi au nom de l’Eternel. »" },
+      { type: "mcq", q: "Combien de « De tout / De toute… » compte l'engagement ?", options: ["Deux", "Trois", "Quatre", "Cinq"], answer: 1, explain: "Trois : de tout mon cœur, de toute mon âme, de toute ma force." }
+    ]
+  },
+  /* ---------------- CHAPITRE 9 ---------------- */
+  {
+    id: 9, icon: "🧭", title: "La spécificité doctrinale",
+    summary: "Les quatre points qui caractérisent l'enseignement",
+    lesson: `<p>Sous le titre « Spécificité doctrinale », le document présente quatre points :</p>
+      <ol type="a"><li><strong>Le Monothéisme radical</strong> : la ligne maîtresse du Kccisme (chapitre 10) ;</li>
+      <li><strong>La source de l'enseignement de l'Église</strong> : la Bible (chapitre 11) ;</li>
+      <li><strong>KCC</strong> : les signes prophétiques et leur signification (chapitre 12) ;</li>
+      <li><strong>La doctrine de l'Église Bon Nouveau Message (KCC)</strong> : le Kccisme ; celui qui y croit est Kcciste (chapitre 13).</li></ol>
+      <p>Selon le document, les trois lettres KCC traduisent le signe de la prophétie qui différencie l'EBNM (KCC) des autres Églises.</p>`,
+    keyPoints: [
+      "La spécificité doctrinale comprend quatre points (a, b, c, d).",
+      "a) Le Monothéisme radical, ligne maîtresse du Kccisme.",
+      "b) La source de l'enseignement de l'Église : la Bible.",
+      "c) KCC : les signes prophétiques qui différencient l'EBNM (KCC) des autres Églises.",
+      "d) La doctrine : le Kccisme ; le croyant : le Kcciste."
+    ],
+    understand: `<p>Ce chapitre est un plan. Retenez les quatre points dans l'ordre (a, b, c, d) : chacun est détaillé dans les chapitres 10 à 13.</p>`,
+    terms: [
+      { term: "EBNM", def: "Église Bon Nouveau Message (sigle utilisé dans le document)." },
+      { term: "Doctrine", def: "Ensemble des enseignements d'une religion. (Sens courant)" }
+    ],
+    source: src("p. 3-4"),
+    questions: [
+      { type: "mcq", q: "Combien de points la spécificité doctrinale comprend-elle ?", options: ["Deux", "Trois", "Quatre", "Huit"], answer: 2, explain: "Quatre points : a, b, c et d." },
+      { type: "match", q: "Associez chaque lettre à son point.", pairs: [["a)", "Le Monothéisme radical"], ["b)", "La source de l'enseignement : la Bible"], ["c)", "KCC"], ["d)", "La doctrine de l'Église : le Kccisme"]], explain: "a) Monothéisme radical, b) Bible, c) KCC, d) Kccisme." },
+      { type: "tf", q: "Selon le document, les lettres KCC différencient l'EBNM (KCC) des autres Églises.", answer: true, explain: "« Ces trois lettres traduisent le signe de la prophétie qui différencie l’EBNM (KCC) des autres Eglises. »" },
+      { type: "mcq", q: "Que signifie le sigle EBNM ?", options: ["Église Bon Nouveau Message", "Église de la Bible et du Nouveau Monde", "Église Biblique Nationale et Missionnaire", "Le document ne l'utilise pas"], answer: 0, explain: "EBNM : Église Bon Nouveau Message." }
+    ]
+  },
+  /* ---------------- CHAPITRE 10 ---------------- */
+  {
+    id: 10, icon: "☝️", title: "Le Monothéisme radical",
+    summary: "La ligne maîtresse du Kccisme",
+    lesson: `<p>Le document enseigne :</p>
+      <div class="prayer"><p>Le Monothéisme radical : c’est la ligne maîtresse du Kccisme. Ce qui veut dire : « croire à l’Eternel, l’Unique vrai Dieu, Créateur du ciel, de la terre et de tout ce qui s’y trouve ; le seul et l’unique Sauveur de l’humanité par sa grâce, sa miséricorde et en son nom »</p><p><strong>(Esaïe 43 : 10-11)</strong></p></div>`,
+    keyPoints: [
+      "Le Monothéisme radical est la ligne maîtresse du Kccisme.",
+      "Croire à l'Éternel, l'Unique vrai Dieu.",
+      "L'Éternel est Créateur du ciel, de la terre et de tout ce qui s'y trouve.",
+      "L'Éternel est le seul et l'unique Sauveur de l'humanité, par sa grâce, sa miséricorde et en son nom.",
+      "Référence biblique : Esaïe 43 : 10-11."
+    ],
+    understand: `<p>« Mono » veut dire « un seul » : le Monothéisme est la foi en un seul Dieu. Selon le document, dans le Kccisme cette foi est <strong>radicale</strong> : l'Éternel est l'Unique vrai Dieu, le Créateur, et le seul et l'unique Sauveur de l'humanité.</p>
+      <p>Lisez aussi Esaïe 43 : 10-11 dans votre Bible.</p>`,
+    terms: [
+      { term: "Monothéisme", def: "Croyance en un Dieu unique. (Sens courant)" },
+      { term: "Monothéisme radical", def: "Ligne maîtresse du Kccisme : croire à l'Éternel, l'Unique vrai Dieu, Créateur, seul et unique Sauveur de l'humanité." },
+      { term: "Ligne maîtresse", def: "Idée principale, point central. (Sens courant)" }
+    ],
+    source: src("p. 3 — Esaïe 43 : 10-11"),
+    questions: [
+      { type: "mcq", q: "Qu'est-ce que le Monothéisme radical pour le Kccisme ?", options: ["Une fête annuelle", "La ligne maîtresse du Kccisme", "Un commandement de l'Église", "Une branche de l'Église"], answer: 1, explain: "« Le Monothéisme radical : c’est la ligne maîtresse du Kccisme. »" },
+      { type: "mcq", q: "Quelle référence biblique le document donne-t-il pour le Monothéisme radical ?", options: ["Genèse 1 : 1", "Esaïe 43 : 10-11", "Psaume 23", "Exode 20"], answer: 1, explain: "Le document cite Esaïe 43 : 10-11." },
+      { type: "tf", q: "Selon le document, l'Éternel est le seul et l'unique Sauveur de l'humanité.", answer: true, explain: "« …le seul et l’unique Sauveur de l’humanité par sa grâce, sa miséricorde et en son nom »." },
+      { type: "short", q: "Complétez : « …Sauveur de l’humanité par sa grâce, sa miséricorde et en son … »", accept: ["nom"], display: "nom", explain: "« …par sa grâce, sa miséricorde et en son nom »." },
+      { type: "tf", q: "Le Monothéisme radical consiste à croire à plusieurs dieux.", answer: false, explain: "Faux : il s'agit de croire à l'Éternel, l'Unique vrai Dieu." }
+    ]
+  },
+  /* ---------------- CHAPITRE 11 ---------------- */
+  {
+    id: 11, icon: "📖", title: "La Bible comme source de l'enseignement",
+    summary: "La source de l'enseignement de l'Église",
+    lesson: `<p>Le document enseigne :</p>
+      <div class="prayer"><p>La source de l’enseignement de l’Eglise : c’est la Bible qui est l’ensemble des livres qui traduit l’alliance de l’Eternel avec son peuple.</p></div>`,
+    keyPoints: [
+      "La source de l'enseignement de l'Église, c'est la Bible.",
+      "La Bible est l'ensemble des livres qui traduit l'alliance de l'Éternel avec son peuple."
+    ],
+    understand: `<p>Tout ce que l'Église enseigne a pour source la Bible. Le document la définit comme un <strong>ensemble de livres</strong> qui exprime l'<strong>alliance</strong> de l'Éternel avec son peuple. C'est pourquoi le document donne des références bibliques, comme Esaïe 43 : 10-11.</p>`,
+    terms: [
+      { term: "Bible", def: "L'ensemble des livres qui traduit l'alliance de l'Éternel avec son peuple." },
+      { term: "Alliance", def: "Engagement, accord solennel. (Sens courant)" }
+    ],
+    source: src("p. 3"),
+    questions: [
+      { type: "mcq", q: "Quelle est la source de l'enseignement de l'Église ?", options: ["La Bible", "La tradition orale seulement", "Les journaux", "Les décisions du Conseil Paroissial"], answer: 0, explain: "« La source de l’enseignement de l’Eglise : c’est la Bible »." },
+      { type: "tf", q: "Selon le document, la Bible est l'ensemble des livres qui traduit l'alliance de l'Éternel avec son peuple.", answer: true, explain: "C'est la définition donnée par le document." },
+      { type: "short", q: "Complétez : « …l’ensemble des livres qui traduit l’… de l’Eternel avec son peuple. »", accept: ["alliance", "l alliance"], display: "alliance", explain: "« …qui traduit l’alliance de l’Eternel avec son peuple. »" },
+      { type: "tf", q: "Selon le document, la Bible est un seul livre écrit par une seule personne.", answer: false, explain: "Faux : le document parle de « l’ensemble des livres »." }
+    ]
+  },
+  /* ---------------- CHAPITRE 12 ---------------- */
+  {
+    id: 12, icon: "✨", title: "La signification de KCC",
+    summary: "Nkanda Wambote Wampa",
+    lesson: `<p>Le document enseigne :</p>
+      <div class="prayer"><p>KCC sont donc les signes prophétiques qui décrivent le message que l’Eternel avait confié à son Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac. Ces trois lettres traduisent le signe de la prophétie qui différencie l’EBNM (KCC) des autres Eglises.</p>
+      <p>Il importe de souligner que c’est dans la langue maternelle du Prophète DIZOLELE, le Kikongo, que la voix de l’Eternel interpréta ces signes.</p></div>
+      <div class="kcc-grid">
+        <div class="kcc"><span>K</span><b>Nkanda</b><small>« lettre », « livre » ou « Message »</small></div>
+        <div class="kcc"><span>C</span><b>Wambote</b><small>« Bon »</small></div>
+        <div class="kcc"><span>C</span><b>Wampa</b><small>« Nouveau » (ce qui est nouveau)</small></div>
+      </div>
+      <p>KCC signifie donc <strong>« Nkanda Wambote Wampa »</strong>, ce qui se traduit littéralement en français par <strong>« Message Bon Nouveau »</strong> ou <strong>« Bon Nouveau Message »</strong>.</p>`,
+    keyPoints: [
+      "KCC sont les signes prophétiques qui décrivent le message que l'Éternel avait confié à son Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "Ces trois lettres différencient l'EBNM (KCC) des autres Églises.",
+      "La voix de l'Éternel interpréta ces signes en Kikongo, langue maternelle du Prophète.",
+      "K = Nkanda (« lettre », « livre » ou « Message ») ; C = Wambote (« Bon ») ; C = Wampa (« Nouveau »).",
+      "KCC = « Nkanda Wambote Wampa » = « Bon Nouveau Message »."
+    ],
+    understand: `<p>Chaque lettre correspond à un mot kikongo : <strong>K</strong> pour <em>Nkanda</em>, le premier <strong>C</strong> pour <em>Wambote</em>, le second <strong>C</strong> pour <em>Wampa</em>. Mis ensemble, ils donnent « Nkanda Wambote Wampa », c'est-à-dire « Bon Nouveau Message » : c'est le nom même de l'Église.</p>`,
+    terms: [
+      { term: "Nkanda", def: "« Lettre », « livre » ou « Message »." },
+      { term: "Wambote", def: "« Bon »." },
+      { term: "Wampa", def: "« Nouveau » (ce qui est nouveau)." },
+      { term: "Kikongo", def: "Langue maternelle du Prophète DIZOLELE, dans laquelle la voix de l'Éternel interpréta les signes KCC." }
+    ],
+    source: src("p. 3-4"),
+    questions: [
+      { type: "mcq", q: "Que signifie KCC ?", options: ["Nkanda Wambote Wampa", "Kimbanguisme Chrétien Congolais", "Kongo Centre Culte", "Le document ne le précise pas"], answer: 0, explain: "KCC signifie « Nkanda Wambote Wampa »." },
+      { type: "match", q: "Associez chaque mot kikongo à sa traduction.", pairs: [["Nkanda", "Lettre, livre ou Message"], ["Wambote", "Bon"], ["Wampa", "Nouveau"]], explain: "K = Nkanda, C = Wambote, C = Wampa." },
+      { type: "mcq", q: "Dans quelle langue la voix de l'Éternel interpréta-t-elle les signes KCC ?", options: ["Le Lingala", "Le Kikongo", "Le Français", "Le Swahili"], answer: 1, explain: "En Kikongo, langue maternelle du Prophète DIZOLELE." },
+      { type: "tf", q: "« Nkanda Wambote Wampa » se traduit en français par « Bon Nouveau Message ».", answer: true, explain: "Littéralement « Message Bon Nouveau » ou « Bon Nouveau Message »." },
+      { type: "mcq", q: "Selon le document, que décrivent les signes prophétiques KCC ?", options: ["Le message que l'Éternel avait confié à son Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac", "Le nom d'une ville", "Une fête annuelle", "Une branche de la jeunesse"], answer: 0, explain: "Ils décrivent le message que l’Eternel avait confié à son Prophète." },
+      { type: "short", q: "Que signifie le mot kikongo « Wambote » ?", accept: ["bon"], display: "Bon", explain: "Wambote signifie « Bon »." },
+      { type: "tf", q: "La lettre K correspond au mot « Wampa ».", answer: false, explain: "Faux : K correspond à « Nkanda »." }
+    ]
+  },
+  /* ---------------- CHAPITRE 13 ---------------- */
+  {
+    id: 13, icon: "🤝", title: "Le Kccisme et le Kcciste",
+    summary: "La doctrine et le croyant",
+    lesson: `<p>Le document enseigne :</p>
+      <div class="prayer"><p>La doctrine de l’Eglise Bon Nouveau Message (KCC) c’est le « Kccisme » et la personne qui croit au Kccisme est appelée « Kcciste ».</p></div>
+      <p>Le document précise aussi que le Monothéisme radical est la ligne maîtresse du Kccisme (chapitre 10).</p>`,
+    keyPoints: [
+      "Le Kccisme est la doctrine de l'Église Bon Nouveau Message (KCC).",
+      "Le Kcciste est la personne qui croit au Kccisme.",
+      "La ligne maîtresse du Kccisme est le Monothéisme radical."
+    ],
+    understand: `<p>Deux mots proches, deux sens différents : le <strong>Kccisme</strong> est l'enseignement (la doctrine) ; le <strong>Kcciste</strong> est la personne qui y croit. Le nom de cette application, « JE SUIS KCCiste », signifie donc « je crois au Kccisme ».</p>`,
+    terms: [
+      { term: "Kccisme", def: "La doctrine de l'Église Bon Nouveau Message (KCC)." },
+      { term: "Kcciste", def: "La personne qui croit au Kccisme." }
+    ],
+    source: src("p. 4"),
+    questions: [
+      { type: "mcq", q: "Qu'est-ce que le Kccisme ?", options: ["La doctrine de l'Église Bon Nouveau Message (KCC)", "La chorale centrale de l'Église", "Un livre de la Bible", "La branche des mamans"], answer: 0, explain: "La doctrine de l’Eglise Bon Nouveau Message (KCC) c’est le « Kccisme »." },
+      { type: "short", q: "Complétez : « La personne qui croit au Kccisme est appelée … »", accept: ["kcciste", "un kcciste"], display: "Kcciste", explain: "La personne qui croit au Kccisme est appelée « Kcciste »." },
+      { type: "tf", q: "Le Monothéisme radical est la ligne maîtresse du Kccisme.", answer: true, explain: "C'est exact." },
+      { type: "tf", q: "« Kcciste » désigne la doctrine, et « Kccisme » désigne la personne.", answer: false, explain: "C'est l'inverse : Kccisme = doctrine, Kcciste = personne." }
+    ]
+  },
+  /* ---------------- CHAPITRE 14 ---------------- */
+  {
+    id: 14, icon: "🗓️", title: "Les dates historiques de l'Église",
+    summary: "Les grandes étapes de l'histoire de l'Église",
+    lesson: `<p>Voici les dates historiques de l'Église indiquées dans le document :</p>${timelineHTML()}`,
+    keyPoints: [
+      "01 mars 1930 : naissance du Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "08 mars 1955 : naissance de l'Église Bon Nouveau Message au Camp Teli à Forakam (Seke Banza).",
+      "12 avril 1958 : apparition de KCC ; 30 avril 1980 : reconnaissance juridique.",
+      "15 avril 2003 : Oracle de l'Éternel : « Quels que soient les miracles qu’il opère, un homme ne peut être Dieu ».",
+      "02 août 2005 : l'Église Universelle de Douze Apôtres devient l'Église Bon Nouveau Message (KCC).",
+      "20 mars 2018 : institution de la fête de la Sainte Convocation (fête de la promulgation de la Loi par Lui-même l'Éternel)."
+    ],
+    understand: `<p>Apprenez les dates dans l'ordre chronologique, en associant toujours la date à l'événement. Retenez surtout que l'Église s'appelait auparavant « Église Universelle de Douze Apôtres » et que le changement de nom, le 02 août 2005, a aussi changé le nom de ses organes et branches.</p>`,
+    terms: [
+      { term: "Oracle", def: "Parole divine révélée. (Sens courant)" },
+      { term: "Reconnaissance juridique", def: "Reconnaissance officielle d'une organisation par l'État. (Sens courant)" },
+      { term: "Sainte Convocation", def: "Fête instituée le 20 mars 2018, aussi appelée fête de la promulgation de la Loi par Lui-même l'Éternel." },
+      { term: "Conseil Paroissial", def: "Organe spirituel (anciennement Conseil de Douze)." },
+      { term: "AFEBNM", def: "Branche des mamans (anciennement AMDAESS)." },
+      { term: "JEBNM", def: "Branche de la jeunesse (anciennement JEUDA)." },
+      { term: "CIRPRO", def: "Regroupement local d'entités (anciennement CIRAPRO)." },
+      { term: "UVPRO", def: "Chorale centrale de l'Église (anciennement UVA)." }
+    ],
+    source: src("p. 4"),
+    questions: [
+      { type: "mcq", q: "Quand est né le Prophète DIZOLELE MPUNGU WAFIDUSUA Isaac ?", options: ["08 mars 1955", "01 mars 1930", "12 avril 1958", "30 avril 1980"], answer: 1, explain: "Le Prophète est né le 01 mars 1930." },
+      { type: "mcq", q: "Où est née l'Église Bon Nouveau Message le 08 mars 1955 ?", options: ["Au Camp Teli à Forakam (Seke Banza)", "À Pika Pende", "À Kinshasa", "Le document ne le précise pas"], answer: 0, explain: "Au Camp Teli à Forakam (Seke Banza)." },
+      { type: "tf", q: "L'apparition de KCC date du 12 avril 1958.", answer: true, explain: "C'est exact : 12 avril 1958." },
+      { type: "short", q: "En quelle année l'Église a-t-elle obtenu sa reconnaissance juridique ? (4 chiffres)", accept: ["1980"], display: "1980", explain: "Le 30 avril 1980." },
+      { type: "mcq", q: "Que dit l'Oracle de l'Éternel du 15 avril 2003 ?", options: ["« Quels que soient les miracles qu’il opère, un homme ne peut être Dieu »", "« Souviens-toi du jour du sabbat »", "« L’Eternel est Un »", "« Aimez l'Église »"], answer: 0, explain: "« Quels que soient les miracles qu’il opère, un homme ne peut être Dieu »." },
+      { type: "mcq", q: "Quel était le nom de l'Église avant le 02 août 2005 ?", options: ["Église Universelle de Douze Apôtres", "Église du Camp Teli", "Église de la Sainte Convocation", "Église Nkanda"], answer: 0, explain: "Le 02 août 2005, l'Église Universelle de Douze Apôtres est devenue l'Église Bon Nouveau Message (KCC)." },
+      { type: "match", q: "Associez chaque ancienne dénomination à la nouvelle.", pairs: [["Conseil de Douze", "Conseil Paroissial"], ["AMDAESS", "AFEBNM"], ["JEUDA", "JEBNM"], ["UVA", "UVPRO"]], explain: "Changements du 02 août 2005 : Conseil Paroissial, AFEBNM, JEBNM, CIRPRO, UVPRO." },
+      { type: "match", q: "Associez chaque date à l'événement.", pairs: [["08 mars 1955", "Naissance de l'Église Bon Nouveau Message"], ["15 avril 2003", "Oracle de l'Éternel à Son Prophète"], ["02 août 2005", "Changement de dénomination"], ["20 mars 2018", "Institution de la fête de la Sainte Convocation"]], explain: "Consultez la chronologie pour revoir chaque date." },
+      { type: "mcq", q: "Quelle fête a été instituée le 20 mars 2018 ?", options: ["La fête de la Moisson", "La fête de la Sainte Convocation", "La fête des Dons Pacifiques", "La fête du Camp Teli"], answer: 1, explain: "La fête de la Sainte Convocation ou fête de la promulgation de la Loi par Lui-même l’Eternel." }
+    ]
+  },
+  /* ---------------- CHAPITRE 15 ---------------- */
+  {
+    id: 15, icon: "🎓", title: "Révision générale", summary: "Évaluation finale de la formation", final: true,
+    lesson: `<p>Ce dernier chapitre rassemble des questions tirées de tous les chapitres de la formation.</p>
+      <p>L'évaluation finale comporte ${CONFIG.FINAL_EXAM_SIZE} questions choisies au hasard. Elle est réussie à partir de ${CONFIG.PASS_SCORE} %.</p>`,
+    keyPoints: [
+      "Relisez les rubriques « À retenir » de chaque chapitre avant de commencer.",
+      "Utilisez « Mes favoris » pour revoir les notions que vous avez marquées.",
+      "Vous pouvez refaire l'évaluation autant de fois que nécessaire : les questions changent à chaque fois."
+    ],
+    understand: `<p>La révision générale permet de vérifier que vous avez bien retenu l'ensemble du parcours.</p>`,
+    terms: [], source: "Questions issues des chapitres 1 à 14.", questions: []
+  }
+];
+
+const getChapter = (id) => CHAPTERS.find(c => c.id === Number(id));
+
+/* ======================================================================
+   Stockage local (localStorage) avec repli en mémoire
+   ====================================================================== */
+const Storage = {
+  _mem: {},
+  get(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch (e) { return key in this._mem ? this._mem[key] : fallback; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); }
+    catch (e) { this._mem[key] = value; }
+  },
+  remove(key) { try { localStorage.removeItem(key); } catch (e) { delete this._mem[key]; } }
+};
+
+/* ======================================================================
+   [AUTH] Accès membre — VERSION LOCALE
+   ⚠ Ce n'est PAS une sécurité réelle : les données restent sur l'appareil.
+   Pour un vrai système : remplacez login()/current()/logout() par des appels
+   à votre API (Firebase, Supabase, serveur maison…) en gardant la même interface.
+   ====================================================================== */
+const AuthService = {
+  KEY: "kcc_member_v1",
+  current() { const m = Storage.get(this.KEY, null); return m && m.verified ? m : null; },
+  /* Vérification locale du code (à remplacer par un appel serveur plus tard) */
+  checkCode(code) { const c = (x) => norm(x).replace(/ /g, ""); return c(code) === c(CONFIG.ACCESS_CODE); },
+  login({ name, parish }) {
+    const member = { name, parish, verified: true, since: new Date().toISOString() };
+    Storage.set(this.KEY, member);
+    return member;
+  },
+  logout() { Storage.remove(this.KEY); }
+};
+
+/* ======================================================================
+   Progression
+   ====================================================================== */
+const Progress = {
+  KEY: "kcc_progress_v1",
+  data: null,
+  load() {
+    this.data = Object.assign(
+      { read: {}, completed: {}, scores: {}, testsTaken: 0, lastChapter: null, lastActivity: null },
+      Storage.get(this.KEY, {})
+    );
+  },
+  save() { this.data.lastActivity = new Date().toISOString(); Storage.set(this.KEY, this.data); },
+  markRead(id) { this.data.read[id] = true; this.data.lastChapter = id; this.save(); },
+  isCompleted(id) { return !!this.data.completed[id]; },
+  isUnlocked(id) { return id === 1 || this.isCompleted(id) || this.isCompleted(id - 1); },
+  /* Retourne true si le chapitre vient d'être terminé pour la première fois */
+  complete(id) { const first = !this.isCompleted(id); this.data.completed[id] = true; this.save(); return first; },
+  /* Enregistre un score ; retourne true si nouveau meilleur score */
+  recordScore(key, pct) {
+    const s = this.data.scores[key] || { best: 0, last: 0, attempts: 0 };
+    const newBest = s.attempts > 0 && pct > s.best;
+    s.best = Math.max(s.best, pct); s.last = pct; s.attempts += 1;
+    this.data.scores[key] = s; this.data.testsTaken += 1; this.save();
+    return newBest;
+  },
+  score(key) { return this.data.scores[key] || null; },
+  stats() {
+    const done = CHAPTERS.filter(c => this.isCompleted(c.id)).length;
+    const sc = Object.values(this.data.scores);
+    return {
+      done, total: CHAPTERS.length, pct: Math.round(done / CHAPTERS.length * 100),
+      best: sc.length ? Math.max(...sc.map(s => s.best)) : 0,
+      avg: sc.length ? Math.round(sc.reduce((a, s) => a + s.best, 0) / sc.length) : 0,   // moyenne des meilleurs scores par test
+      tests: this.data.testsTaken, last: this.data.lastActivity, allDone: done === CHAPTERS.length
+    };
+  },
+  nextTarget() {
+    const last = this.data.lastChapter;
+    if (last && !this.isCompleted(last)) return getChapter(last);
+    return CHAPTERS.find(c => !this.isCompleted(c.id) && this.isUnlocked(c.id)) || null;
+  },
+  reset() { Storage.remove(this.KEY); this.load(); }
+};
+
+/* ======================================================================
+   Favoris
+   ====================================================================== */
+const Favs = {
+  KEY: "kcc_favs_v1",
+  list: [],
+  load() { this.list = Storage.get(this.KEY, []); },
+  has(key) { return this.list.some(f => f.key === key); },
+  toggle(item) {
+    if (this.has(item.key)) { this.list = this.list.filter(f => f.key !== item.key); Storage.set(this.KEY, this.list); return false; }
+    this.list.push(item); Storage.set(this.KEY, this.list); return true;
+  }
+};
+
+/* ======================================================================
+   Utilitaires
+   ====================================================================== */
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = (s) => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[’'`]/g, " ").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+const stripTags = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent || ""; };
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function fmtDate(iso) { if (!iso) return "—"; try { return new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return iso; } }
+function toast(msg) {
+  const z = document.getElementById("toasts"); const t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg; z.appendChild(t);
+  while (z.children.length > 2) z.firstChild.remove();   // jamais plus de 2 messages à la fois
+  setTimeout(() => t.remove(), 2600);
+}
+/* Fenêtre de confirmation intégrée (remplace confirm(), souvent bloqué dans les APK/WebView) */
+function askConfirm(message, okLabel) {
+  return new Promise(resolve => {
+    const o = document.createElement("div"); o.className = "modal-bg";
+    o.innerHTML = `<div class="modal" role="alertdialog" aria-modal="true"><p>${esc(message)}</p>
+      <div class="btn-row inline"><button class="btn btn-ghost" data-r="0">Annuler</button><button class="btn btn-royal" data-r="1">${esc(okLabel || "Confirmer")}</button></div></div>`;
+    o.addEventListener("click", e => { const b = e.target.closest("[data-r]"); if (b || e.target === o) { o.remove(); resolve(!!(b && b.dataset.r === "1")); } });
+    document.body.appendChild(o); o.querySelector('[data-r="1"]').focus();
+  });
+}
+const bar = (pct, cls = "") => `<div class="bar ${cls}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>`;
+
+/* ======================================================================
+   Navigation / Routeur (hash) — compatible WebView et bouton retour Android
+   ====================================================================== */
+const NAV = [
+  { key: "home", icon: "🏠", label: "Accueil", href: "#/home" },
+  { key: "courses", icon: "📖", label: "Cours", href: "#/courses" },
+  { key: "tests", icon: "❓", label: "QCM", href: "#/tests" },
+  { key: "progress", icon: "📊", label: "Progression", href: "#/progress" },
+  { key: "menu", icon: "☰", label: "Menu", href: "#/menu" }
+];
+const MENU = [
+  { key: "home", icon: "🏠", label: "Accueil", href: "#/home" },
+  { key: "courses", icon: "📖", label: "Formation", href: "#/courses" },
+  { key: "tests", icon: "❓", label: "QCM", href: "#/tests" },
+  { key: "progress", icon: "📊", label: "Progression", href: "#/progress" },
+  { key: "dates", icon: "📜", label: "Dates historiques", href: "#/dates" },
+  { key: "c2", icon: "📋", label: "Commandements", chapter: 2 },
+  { key: "c4", icon: "🗣️", label: "Profession de foi", chapter: 4 },
+  { key: "c6", icon: "💧", label: "Sacrements", chapter: 6 },
+  { key: "practices", icon: "🙏", label: "Paroles et pratiques", href: "#/practices" },
+  { key: "revision", icon: "📚", label: "Révision générale", href: "#/revision" },
+  { key: "favorites", icon: "⭐", label: "Mes favoris", href: "#/favorites" },
+  { key: "search", icon: "🔎", label: "Rechercher", href: "#/search" },
+  { key: "about", icon: "ℹ️", label: "À propos", href: "#/about" },
+  { key: "contact", icon: "💬", label: "Contact WhatsApp", href: "#/contact" }
+];
+const TITLES = {
+  home: "Accueil", courses: "Formation", tests: "QCM", progress: "Ma progression", dates: "Dates historiques",
+  practices: "Paroles et pratiques", revision: "Révision", favorites: "Mes favoris", search: "Recherche",
+  about: "À propos", contact: "Contact", menu: "Menu", finished: "Formation terminée"
+};
+const ACTIVE = { chapter: "courses", quiz: "tests", finished: "progress" };
+
+function parseRoute() {
+  const [name = "", param] = location.hash.replace(/^#\/?/, "").split("/");
+  return { name, param };
+}
+function go(path) { location.hash = "#/" + path; }
+function replaceRoute(path) {
+  try { history.replaceState(null, "", "#/" + path); render(); } catch (e) { location.hash = "#/" + path; }
+}
+function menuLink(item, activeKey, cls) {
+  const cur = item.key === activeKey ? ' aria-current="page"' : "";
+  const href = item.chapter ? `#/chapter/${item.chapter}` : item.href;
+  const act = item.chapter ? ` data-action="open-chapter" data-id="${item.chapter}"` : "";
+  return `<a class="${cls}" href="${href}"${act}${cur}><span class="mi">${item.icon}</span><span>${item.label}</span>${cls === "" ? '<span class="chev">›</span>' : ""}</a>`;
+}
+
+/* Structure commune des pages après connexion */
+function shell(name, title, content) {
+  const active = ACTIVE[name] || name;
+  const isHome = name === "home";
+  return `<div class="layout">
+  <aside class="sidebar" aria-label="Menu principal">
+    <a class="sb-brand" href="#/home">${logoSVG(42)}<span><b>JE SUIS KCCiste</b><small>FORMATION</small></span></a>
+    <nav>${MENU.map(m => menuLink(m, active, "sb-link")).join("")}</nav>
+    <div class="sb-foot">${CONFIG.PARISH}<br>Créateur : ${CONFIG.CREATOR}</div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      ${isHome
+        ? `<a class="tb-brand" href="#/home">${logoSVG(36)}<span><b>JE SUIS KCCiste</b><small>FORMATION</small></span></a><span class="spacer"></span>`
+        : `<button class="icon-btn" data-action="back" aria-label="Retour">←</button><div class="tb-title">${esc(title)}</div>`}
+      <a class="icon-btn" href="#/search" aria-label="Rechercher dans la formation">🔎</a>
+      <a class="icon-btn" href="#/favorites" aria-label="Mes favoris">⭐</a>
+    </header>
+    <main id="view" class="view fade" tabindex="-1">${content}${footer()}</main>
+  </div>
+  <nav class="bottomnav" aria-label="Navigation">
+    ${NAV.map(n => `<a class="bn-item" href="${n.href}"${n.key === active ? ' aria-current="page"' : ""}><span class="ico" aria-hidden="true">${n.icon}</span>${n.label}</a>`).join("")}
+  </nav>
+</div>`;
+}
+function footer() {
+  return `<footer class="app-footer">
+    <div class="fb">JE SUIS KCCiste – FORMATION</div>
+    <div>Formation pour les néophytes · ${CONFIG.PARISH}</div>
+    <div>Créateur : ${CONFIG.CREATOR} · WhatsApp : <a href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></div>
+    <div>© ${CONFIG.YEAR}</div>
+  </footer>`;
+}
+function fsFooter() {
+  return `<div class="fs-foot">${CONFIG.PARISH} · © ${CONFIG.YEAR}<br>Créateur : ${CONFIG.CREATOR} · <a href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></div>`;
+}
+
+/* ======================================================================
+   VUES — écrans d'accès
+   ====================================================================== */
+function viewAccess() {
+  return `<div class="fullscreen"><div class="fs-inner fade">
+    <div class="brand">${logoSVG(78)}</div>
+    <h1 class="fs-title">JE SUIS KCCiste<span>FORMATION</span></h1>
+    <p class="fs-sub">Formation doctrinale pour les néophytes<br>${CONFIG.PARISH}</p>
+    <p class="fs-intro">« Cette application est destinée à accompagner les néophytes dans l'apprentissage progressif des bases de la doctrine KCC. »</p>
+    <section class="glass">
+      <h2>🔐 ACCÈS À LA FORMATION</h2>
+      <p>Pour accéder à cette formation, vous devez être membre du groupe <strong>${CONFIG.GROUP}</strong>.</p>
+      <p>Si vous êtes membre, continuez vers la formation.</p>
+      <p>Si vous souhaitez obtenir les informations d'accès, contactez directement le créateur sur WhatsApp.</p>
+      <div class="btn-row">
+        <a class="btn btn-gold btn-block" href="#/member">JE SUIS MEMBRE</a>
+        <a class="btn btn-wa btn-block" href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener">💬 ÉCRIRE SUR WHATSAPP</a>
+      </div>
+      <p class="small" style="margin-top:12px">Vous pouvez nous contacter directement sur WhatsApp pour obtenir les informations d'accès.</p>
+    </section>
+    ${fsFooter()}
+  </div></div>`;
+}
+
+function viewMember() {
+  return `<div class="fullscreen"><div class="fs-inner fade">
+    <a class="back-link" href="#/access">← Retour</a>
+    <div class="brand">${logoSVG(58)}</div>
+    <h1 class="fs-title">ACCÈS MEMBRE</h1>
+    <p class="fs-sub">Indiquez votre nom, votre paroisse et le code d'accès communiqué aux membres du groupe Je suis KCCiste.</p>
+    <form id="member-form" class="glass" style="margin-top:20px" novalidate>
+      <label class="field"><span>Nom complet</span>
+        <input class="input" name="name" autocomplete="name" required minlength="3" maxlength="60" placeholder="Ex. : Jean Mavungu"></label>
+      <label class="field"><span>Paroisse</span>
+        <input class="input" name="parish" required maxlength="60" placeholder="Ex. : Pika Pende"></label>
+      <label class="field"><span>Code d'accès</span>
+        <input class="input" name="code" required autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Code communiqué au groupe"></label>
+      <div id="form-error" aria-live="assertive"></div>
+      <button class="btn btn-gold btn-block" type="submit" style="margin-top:16px">CONTINUER</button>
+      <p class="small" style="margin-top:12px">Vos informations restent uniquement sur cet appareil. Aucun mot de passe n'est demandé.</p>
+    </form>
+    ${fsFooter()}
+  </div></div>`;
+}
+
+function viewWelcome() {
+  const u = AuthService.current();
+  return `<div class="fullscreen"><div class="fs-inner fade" style="justify-content:center">
+    <div class="brand">${logoSVG(72)}</div>
+    <p class="fs-sub" style="margin:0">${CONFIG.GREETING} ${esc(u.name)}</p>
+    <h1 class="fs-title" style="margin-top:8px">Bienvenue dans<br>JE SUIS KCCiste – FORMATION</h1>
+    <div class="glass" style="margin-top:22px">
+      <p>Cette plateforme a été conçue pour accompagner les néophytes dans leur découverte progressive des bases de l'enseignement doctrinal KCC.</p>
+      <p>Prenez le temps de lire chaque chapitre, de comprendre les notions importantes et de répondre aux questions proposées.</p>
+      <div class="btn-row"><a class="btn btn-gold btn-block" href="#/home">COMMENCER LA FORMATION</a></div>
+    </div>
+    ${fsFooter()}
+  </div></div>`;
+}
+
+/* ======================================================================
+   VUES — application
+   ====================================================================== */
+function viewHome() {
+  const u = AuthService.current(), st = Progress.stats(), next = Progress.nextTarget();
+  const tiles = [
+    ["📖", "Cours", "Lire les chapitres de la formation", "#/courses"],
+    ["❓", "QCM", "Tester vos connaissances", "#/tests"],
+    ["📊", "Progression", "Voir votre évolution", "#/progress"],
+    ["📜", "Dates historiques", "Découvrir les principales dates de l'Église", "#/dates"],
+    ["🙏", "Paroles et pratiques", "Accéder aux contenus correspondants", "#/practices"],
+    ["📚", "Révision", "Réviser les notions importantes", "#/revision"],
+    ["⭐", "Mes favoris", "Retrouver vos notions marquées", "#/favorites"],
+    ["💬", "Contact", "Contacter le Prédicateur", "#/contact"]
+  ];
+  return `
+  <section class="hello">
+    <div class="hi">${CONFIG.GREETING} ${esc(u.name)} 👋</div>
+    <h1>Bienvenue dans votre formation</h1>
+    <p>Parcours des néophytes – ${CONFIG.PARISH}</p>
+  </section>
+
+  <section class="card card-dark">
+    <div class="eyebrow">Ma progression</div>
+    <div class="prog-top"><span class="big">${st.pct} %</span><span class="muted small">${st.done} / ${st.total} chapitres</span></div>
+    ${bar(st.pct)}
+    <div class="prog-stats muted"><span>Chapitres terminés : <b>${st.done} / ${st.total}</b></span><span>Score moyen : <b>${st.avg} %</b></span></div>
+  </section>
+
+  ${next ? `<section class="card">
+    <div class="eyebrow">Continuer la formation</div>
+    <div class="continue">
+      <div class="num">${next.id}</div>
+      <div class="txt"><small class="muted">${Progress.data.lastChapter === next.id ? "Dernier chapitre consulté" : "Prochaine étape"}</small><b>${esc(next.title)}</b></div>
+    </div>
+    <div class="btn-row"><a class="btn btn-royal btn-block" href="#/chapter/${next.id}" data-action="continue">CONTINUER</a></div>
+  </section>` : `<section class="card"><div class="eyebrow">Parcours terminé 🎓</div><p>Vous avez terminé tous les chapitres.</p><a class="btn btn-gold btn-block" href="#/finished">Voir mon bilan</a></section>`}
+
+  <a class="searchbar" href="#/search"><span aria-hidden="true">🔎</span> Rechercher dans la formation</a>
+  <div class="tiles">${tiles.map(t => `<a class="tile" href="${t[3]}"><span class="ic" aria-hidden="true">${t[0]}</span><b>${t[1]}</b><span>${t[2]}</span></a>`).join("")}</div>`;
+}
+
+function chapterItem(c) {
+  const done = Progress.isCompleted(c.id), open = Progress.isUnlocked(c.id), s = Progress.score(c.final ? "final" : c.id);
+  const state = done ? "done" : open ? "" : "locked";
+  const meta = done ? `Terminé${s ? " · meilleur score " + s.best + " %" : ""}` : open ? (Progress.data.read[c.id] ? "En cours" : "Disponible") : `Terminez le chapitre ${c.id - 1} pour débloquer`;
+  const pill = done ? `<span class="pill pill-ok">Réviser</span>` : open ? `<span class="pill pill-go">Étudier</span>` : `<span class="pill pill-lock">🔒</span>`;
+  return `<a class="ch-item ${state}" href="#/chapter/${c.id}" data-action="open-chapter" data-id="${c.id}">
+    <span class="n">${done ? "✓" : c.id}</span>
+    <span class="t"><b>${esc(c.title)}</b><small>Chapitre ${c.id} · ${meta}</small></span>${pill}</a>`;
+}
+
+function viewCourses() {
+  const st = Progress.stats();
+  return `<div class="page-head"><h1>📖 La formation</h1><p>${st.done} / ${st.total} chapitres terminés. Chaque chapitre se débloque après le précédent ; les chapitres terminés restent accessibles avec « Réviser ».</p></div>
+  ${bar(st.pct)}<div style="height:16px"></div>
+  <div class="ch-list">${CHAPTERS.map(chapterItem).join("")}</div>`;
+}
+
+function lockedView(id) {
+  return `<div class="empty card"><div class="e-ic">🔒</div><h2 style="margin:8px 0">Chapitre verrouillé</h2>
+    <p>Terminez d'abord le chapitre ${id - 1} pour accéder à ce contenu.</p>
+    <a class="btn btn-royal" href="#/courses">Voir les chapitres</a></div>`;
+}
+
+function viewChapter(param) {
+  const c = getChapter(param);
+  if (!c) return `<div class="empty">Chapitre introuvable.</div>`;
+  if (!Progress.isUnlocked(c.id)) return lockedView(c.id);
+  Progress.markRead(c.id);
+  const favKey = "c:" + c.id, done = Progress.isCompleted(c.id);
+  const s = Progress.score(c.final ? "final" : c.id);
+  const prev = getChapter(c.id - 1), next = getChapter(c.id + 1);
+
+  let cta;
+  if (c.final) {
+    cta = `<p>Évaluation finale : jusqu'à ${CONFIG.FINAL_EXAM_SIZE} questions tirées de tous les chapitres.</p>
+      ${s ? `<p class="muted small">Meilleur score : ${s.best} % · ${s.attempts} tentative(s)</p>` : ""}
+      <a class="btn btn-gold btn-block" href="#/quiz/final">Commencer l'évaluation finale</a>`;
+  } else if (c.questions.length) {
+    cta = `<p>${c.questions.length} questions · réussite à partir de ${CONFIG.PASS_SCORE} %</p>
+      ${s ? `<p class="muted small">Meilleur score : ${s.best} % · dernier : ${s.last} %</p>` : ""}
+      <a class="btn btn-gold btn-block" href="#/quiz/${c.id}">${s ? "Refaire le test" : "Commencer le test"}</a>`;
+  } else {
+    cta = `<p class="muted">Le test de ce chapitre sera ajouté lorsque le contenu doctrinal sera complété.</p>
+      ${done ? `<p><span class="pill pill-ok">✓ Chapitre terminé</span></p>` : `<button class="btn btn-royal btn-block" data-action="complete-chapter" data-id="${c.id}">✓ Marquer comme lu et terminé</button>`}`;
+  }
+
+  return `
+  <section class="ch-hero">
+    <div class="eyebrow">Chapitre ${c.id} / ${CHAPTERS.length} ${done ? "· ✓ Terminé" : ""}</div>
+    <h1>${c.icon} ${esc(c.title)}</h1>
+    <p style="color:#C9D4EC;margin-top:6px">${esc(c.summary)}</p>
+    <div class="fav"><button class="fav-btn" data-action="fav-chapter" data-id="${c.id}" aria-pressed="${Favs.has(favKey)}" aria-label="Ajouter le chapitre aux favoris">${Favs.has(favKey) ? "★" : "☆"}</button></div>
+  </section>
+
+  <section class="sec"><div class="sec-h">📖 LEÇON</div><div class="lesson">${c.lesson}</div></section>
+
+  <section class="sec"><div class="sec-h">💡 À RETENIR</div>
+    ${c.keyPoints.length ? `<ul class="keypoints">${c.keyPoints.map((k, i) => {
+      const key = `n:${c.id}:${i}`, on = Favs.has(key);
+      return `<li><span class="chk">✓</span><span class="kp-t">${esc(k)}</span><button class="star-sm" data-action="fav-note" data-id="${c.id}" data-i="${i}" aria-pressed="${on}" aria-label="Ajouter cette notion aux favoris">${on ? "★" : "☆"}</button></li>`;
+    }).join("")}</ul>` : pend("Points essentiels")}
+  </section>
+
+  <section class="sec"><div class="sec-h">🔎 COMPRENDRE</div><div>${c.understand}</div></section>
+
+  ${c.terms.length ? `<section class="sec"><div class="sec-h">📚 MOTS IMPORTANTS</div><div class="terms">
+    ${c.terms.map(t => `<div class="term"><b>${esc(t.term)}</b><span>${t.def === PENDING ? `<em>${PENDING}</em>` : esc(t.def)}</span></div>`).join("")}
+  </div></section>` : ""}
+
+  <section class="sec"><div class="sec-h">🗂️ SOURCE DU COURS</div><p class="source">${esc(c.source)}</p></section>
+
+  <section class="sec test-cta"><div class="sec-h">❓ ${c.final ? "ÉVALUATION FINALE" : "TEST DU CHAPITRE"}</div>${cta}</section>
+
+  <div class="ch-nav">
+    ${prev ? `<a class="btn btn-ghost" href="#/chapter/${prev.id}">← Chapitre ${prev.id}</a>` : ""}
+    ${next ? `<a class="btn btn-ghost" href="#/chapter/${next.id}" data-action="open-chapter" data-id="${next.id}">Chapitre ${next.id} ${Progress.isUnlocked(next.id) ? "→" : "🔒"}</a>` : ""}
+  </div>`;
+}
+
+/* ---------- Moteur de QCM ---------- */
+const Quiz = {
+  state: null,
+  start(key) {
+    let qs;
+    if (key === "final") {
+      const pool = CHAPTERS.flatMap(c => c.questions.map(q => Object.assign({}, q, { ch: c.id })));
+      qs = shuffle(pool).slice(0, CONFIG.FINAL_EXAM_SIZE);
+    } else {
+      const c = getChapter(key); qs = c.questions.map(q => Object.assign({}, q, { ch: c.id }));
+    }
+    this.state = { key, qs: qs.map(q => this.prepare(q)), i: 0, score: 0, answered: false };
+  },
+  prepare(q) {
+    if (q.type === "mcq") q._opts = shuffle(q.options.map((t, i) => ({ t, ok: i === q.answer })));
+    if (q.type === "match") q._rights = shuffle(q.pairs.map(p => p[1]));
+    return q;
+  },
+  box() { return document.getElementById("quiz-box"); },
+  current() { return this.state.qs[this.state.i]; },
+  typeLabel(t) { return { mcq: "QCM", tf: "Vrai / Faux", short: "Question courte", match: "Association" }[t]; },
+  renderQuestion() {
+    const s = this.state, q = this.current(), n = s.qs.length;
+    let body = "";
+    if (q.type === "mcq") body = `<div class="opts">${q._opts.map((o, i) => `<button class="opt" data-action="qa" data-i="${i}"><span class="l">${"ABCDEF"[i]}</span><span>${esc(o.t)}</span></button>`).join("")}</div>`;
+    if (q.type === "tf") body = `<div class="opts tf"><button class="opt" data-action="qa" data-v="true">Vrai</button><button class="opt" data-action="qa" data-v="false">Faux</button></div>`;
+    if (q.type === "short") body = `<label class="sr-only" for="q-short">Votre réponse</label><input id="q-short" class="input" autocomplete="off" placeholder="Votre réponse…"><div class="btn-row"><button class="btn btn-royal btn-block" data-action="q-short">Valider</button></div>`;
+    if (q.type === "match") body = q.pairs.map((p, i) => `<div class="match-row" id="mr${i}"><b>${esc(p[0])}</b>
+        <select class="input" id="ms${i}" aria-label="Associer ${esc(p[0])}"><option value="">— Choisir —</option>${q._rights.map(r => `<option>${esc(r)}</option>`).join("")}</select></div>`).join("")
+        + `<div class="btn-row"><button class="btn btn-royal btn-block" data-action="q-match">Valider</button></div>`;
+    this.box().innerHTML = `
+      <div class="q-top"><span>Question ${s.i + 1} / ${n}</span><span>${this.typeLabel(q.type)}</span></div>
+      ${bar(Math.round(s.i / n * 100), "sm")}
+      ${s.key === "final" ? `<span class="q-tag">Chapitre ${q.ch}</span>` : ""}
+      <h2 class="q-text">${esc(q.q)}</h2>${body}<div id="q-feedback"></div>`;
+    s.answered = false;
+  },
+  answer(ok, correctText) {
+    const s = this.state, q = this.current(); s.answered = true; if (ok) s.score++;
+    this.box().querySelectorAll(".opt, input, select, [data-action='q-short'], [data-action='q-match']").forEach(el => el.disabled = true);
+    const last = s.i === s.qs.length - 1;
+    const fb = document.getElementById("q-feedback");
+    fb.innerHTML = `<div class="feedback ${ok ? "ok" : "ko"}">
+      <div class="fb-title">${ok ? "✅ Bonne réponse" : "❌ Mauvaise réponse"}</div>
+      ${ok ? "" : `<div class="fb-ans"><strong>Bonne réponse :</strong> ${correctText}</div>`}
+      <p>${esc(q.explain || "")}</p>
+      <button class="btn btn-gold btn-block" data-action="q-next">${last ? "Voir le résultat" : "Question suivante →"}</button></div>`;
+    const btn = fb.querySelector("button"); btn.focus({ preventScroll: true });
+    fb.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  },
+  next() {
+    const s = this.state;
+    if (s.i < s.qs.length - 1) { s.i++; this.renderQuestion(); this.box().scrollIntoView({ behavior: "smooth", block: "start" }); }
+    else this.finish();
+  },
+  finish() {
+    const s = this.state, n = s.qs.length, pct = Math.round(s.score / n * 100);
+    const newBest = Progress.recordScore(s.key, pct);
+    const passed = pct >= CONFIG.PASS_SCORE;
+    const chId = s.key === "final" ? 15 : Number(s.key);
+    let firstDone = false;
+    if (passed) firstDone = Progress.complete(chId);
+    if (firstDone) toast("✓ Chapitre terminé");
+    if (newBest) setTimeout(() => toast("🏆 Nouveau meilleur score"), firstDone ? 700 : 0);
+    const msg = pct >= 90 ? "Excellent travail !" : pct >= 70 ? "Très bonne progression." : pct >= CONFIG.PASS_SCORE ? "Bonne progression, continuez ainsi." : `Relisez le chapitre puis réessayez (réussite à partir de ${CONFIG.PASS_SCORE} %).`;
+    const next = getChapter(chId + 1), best = Progress.score(s.key).best, all = Progress.stats().allDone;
+    this.box().innerHTML = `<div class="result fade">
+      <div class="eyebrow">RÉSULTAT</div>
+      <div class="score">${s.score} / ${n}</div>
+      <div class="pct">${pct} %${passed ? " · réussi" : ""}</div>
+      <p class="msg">${msg}</p>
+      <p class="muted small">Meilleur score : ${best} %</p>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-block" data-action="q-retry">REFAIRE LE TEST</button>
+        ${all && s.key === "final" ? `<a class="btn btn-gold btn-block" href="#/finished">🎓 Voir mon bilan de formation</a>` : ""}
+        ${next && Progress.isUnlocked(next.id) && s.key !== "final" ? `<a class="btn btn-gold btn-block" href="#/chapter/${next.id}">CHAPITRE SUIVANT →</a>` : ""}
+        <a class="btn btn-ghost btn-block" href="#/chapter/${chId}">Revoir le chapitre</a>
+      </div></div>`;
+  }
+};
+
+function viewQuiz(param) {
+  const isFinal = param === "final";
+  const c = isFinal ? getChapter(15) : getChapter(param);
+  if (!c) return `<div class="empty">Test introuvable.</div>`;
+  if (!Progress.isUnlocked(c.id)) return lockedView(c.id);
+  if (!isFinal && !c.questions.length) return `<div class="empty card"><div class="e-ic">📝</div><p>Aucun test pour ce chapitre pour le moment.</p><a class="btn btn-royal" href="#/chapter/${c.id}">Retour au chapitre</a></div>`;
+  Quiz.start(isFinal ? "final" : c.id);
+  setTimeout(() => Quiz.renderQuestion(), 0);
+  return `<div class="page-head"><div class="eyebrow">${isFinal ? "RÉVISION GÉNÉRALE" : "TEST DU CHAPITRE " + c.id}</div><h1>${esc(isFinal ? "Évaluation finale" : c.title)}</h1></div>
+    <section class="card" id="quiz-box" aria-live="polite"></section>`;
+}
+
+function viewTests() {
+  const withQ = CHAPTERS.filter(c => c.questions.length);
+  const finalOpen = Progress.isUnlocked(15), fs = Progress.score("final");
+  return `<div class="page-head"><h1>❓ QCM</h1><p>Testez vos connaissances chapitre par chapitre. Un test se débloque avec son chapitre.</p></div>
+  <div class="ch-list">${withQ.map(c => {
+    const open = Progress.isUnlocked(c.id), s = Progress.score(c.id);
+    return `<a class="ch-item ${open ? (Progress.isCompleted(c.id) ? "done" : "") : "locked"}" href="${open ? "#/quiz/" + c.id : "#/tests"}" ${open ? "" : `data-action="locked" data-id="${c.id}"`}>
+      <span class="n">${c.id}</span><span class="t"><b>${esc(c.title)}</b><small>${c.questions.length} questions${s ? " · meilleur " + s.best + " %" : ""}</small></span>
+      <span class="pill ${open ? "pill-go" : "pill-lock"}">${open ? (s ? "Refaire" : "Commencer") : "🔒"}</span></a>`;
+  }).join("")}</div>
+  <div class="section-title">ÉVALUATION FINALE</div>
+  <section class="card card-dark"><div class="eyebrow">🎓 Révision générale</div>
+    <p>Jusqu'à ${CONFIG.FINAL_EXAM_SIZE} questions tirées de l'ensemble des chapitres.</p>
+    ${fs ? `<p class="muted small">Meilleur score : ${fs.best} %</p>` : ""}
+    ${finalOpen ? `<a class="btn btn-gold btn-block" href="#/quiz/final">Commencer</a>` : `<p class="muted small">🔒 Disponible après le chapitre 14.</p>`}
+  </section>`;
+}
+
+function viewProgress() {
+  const st = Progress.stats();
+  return `<div class="page-head"><h1>📊 Ma progression</h1></div>
+  <section class="card card-dark"><div class="eyebrow">Progression générale</div>
+    <div class="prog-top"><span class="big">${st.pct} %</span></div>${bar(st.pct)}</section>
+  <div class="stats">
+    <div class="stat"><small>Chapitres terminés</small><b>${st.done} / ${st.total}</b></div>
+    <div class="stat"><small>Tests effectués</small><b>${st.tests}</b></div>
+    <div class="stat"><small>Meilleur score</small><b>${st.best} %</b></div>
+    <div class="stat"><small>Score moyen</small><b>${st.avg} %</b></div>
+    <div class="stat" style="grid-column:span 2"><small>Dernière activité</small><b style="font-size:1rem;font-family:var(--sans)">${fmtDate(st.last)}</b></div>
+  </div>
+  ${st.allDone ? `<div class="btn-row"><a class="btn btn-gold btn-block" href="#/finished">🎓 Voir mon bilan de formation</a></div>` : ""}
+  <div class="section-title">DÉTAIL PAR CHAPITRE</div>
+  <div class="ch-list">${CHAPTERS.map(chapterItem).join("")}</div>
+  <div class="btn-row"><button class="btn btn-danger btn-block" data-action="reset-progress">Réinitialiser ma progression</button></div>`;
+}
+
+function viewDates() {
+  return `<div class="page-head"><h1>📜 Dates historiques</h1><p>Les principales dates de l'${CONFIG.CHURCH}, selon le document de formation.</p></div>
+  ${timelineHTML()}`;
+}
+
+function viewPractices() {
+  const items = [[7, "La Première Purification et la Parole de la Purification"], [8, "La Parole de la Première Onction"], [2, "Les Dix Commandements de l'Éternel Dieu"], [3, "Les Sept Commandements de l'Église"], [4, "La Profession de Foi"], [6, "Les Sacrements de l'Église"]];
+  return `<div class="page-head"><h1>🙏 Paroles et pratiques</h1><p>Accès direct aux paroles et pratiques présentées dans la formation.</p></div>
+  <div class="ch-list">${items.map(([id, label]) => {
+    const open = Progress.isUnlocked(id);
+    return `<a class="ch-item ${open ? "" : "locked"}" href="#/chapter/${id}" data-action="open-chapter" data-id="${id}"><span class="n">${id}</span><span class="t"><b>${label}</b><small>Chapitre ${id}</small></span><span class="pill ${open ? "pill-go" : "pill-lock"}">${open ? "Ouvrir" : "🔒"}</span></a>`;
+  }).join("")}</div>`;
+}
+
+function viewRevision() {
+  const done = CHAPTERS.filter(c => Progress.isCompleted(c.id) && !c.final);
+  return `<div class="page-head"><h1>📚 Révision</h1><p>Revoyez librement les chapitres terminés et leurs points essentiels.</p></div>
+  <section class="card card-dark"><div class="eyebrow">🎓 Révision générale</div><p>Évaluation finale de ${CONFIG.FINAL_EXAM_SIZE} questions maximum.</p>
+    ${Progress.isUnlocked(15) ? `<a class="btn btn-gold btn-block" href="#/quiz/final">Commencer l'évaluation</a>` : `<p class="muted small">🔒 Disponible après le chapitre 14.</p>`}</section>
+  ${done.length ? done.map(c => `<section class="sec"><div class="sec-h">${c.icon} CHAPITRE ${c.id}</div><h3 style="margin-bottom:8px">${esc(c.title)}</h3>
+      ${c.keyPoints.length ? `<ul class="keypoints">${c.keyPoints.map(k => `<li><span class="chk">✓</span><span class="kp-t">${esc(k)}</span></li>`).join("")}</ul>` : `<p class="muted small">Points essentiels à compléter.</p>`}
+      <div class="btn-row inline"><a class="btn btn-ghost btn-sm" href="#/chapter/${c.id}">Réviser le chapitre</a>${c.questions.length ? `<a class="btn btn-ghost btn-sm" href="#/quiz/${c.id}">Refaire le test</a>` : ""}</div></section>`).join("")
+    : `<div class="empty card"><div class="e-ic">📚</div><p>Terminez un premier chapitre pour le retrouver ici.</p><a class="btn btn-royal" href="#/courses">Commencer</a></div>`}`;
+}
+
+function viewFavorites() {
+  const list = Favs.list;
+  return `<div class="page-head"><h1>⭐ Mes favoris</h1><p>Chapitres et notions que vous avez marqués avec ☆.</p></div>
+  ${list.length ? `<div class="results">${list.map(f => `<a class="res" href="#/chapter/${f.chapterId}" data-action="open-chapter" data-id="${f.chapterId}">
+      <b>${f.type === "chapter" ? "📖 " : "💡 "}${esc(f.label)}</b><p>Chapitre ${f.chapterId}${f.type === "note" ? " · " + esc(getChapter(f.chapterId).title) : ""}</p></a>`).join("")}</div>`
+    : `<div class="empty card"><div class="e-ic">☆</div><p>Aucun favori pour le moment.<br>Touchez ☆ sur un chapitre ou une notion « À retenir ».</p></div>`}`;
+}
+
+/* ---------- Recherche ---------- */
+let SEARCH_INDEX = null;
+function buildIndex() {
+  const idx = [];
+  CHAPTERS.forEach(c => {
+    const segs = [c.title, c.summary, ...c.keyPoints, ...c.terms.map(t => t.term + " : " + t.def)];
+    const d = document.createElement("div"); d.innerHTML = c.lesson + c.understand;
+    d.querySelectorAll("p, li, h3").forEach(el => { const t = el.textContent.trim(); if (t && t !== PENDING) segs.push(t); });
+    segs.forEach(s => { if (s && !s.includes(PENDING)) idx.push({ chapter: c, text: s, n: norm(s + " " + c.title) }); });
+  });
+  DATES.forEach(d => idx.push({ chapter: getChapter(14), text: d.date + " — " + d.title, n: norm("dates historiques " + d.date + " " + d.title), isDate: true }));
+  return idx;
+}
+const ACC = { a: "[aàâä]", e: "[eéèêë]", i: "[iîï]", o: "[oôö]", u: "[uùûü]", c: "[cç]" };
+function highlight(text, words) {
+  let out = esc(text);
+  words.forEach(w => {
+    if (w.length < 2) return;
+    const re = new RegExp("(" + w.split("").map(ch => ACC[ch] || ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("") + ")", "gi");
+    out = out.replace(re, "<mark>$1</mark>");
+  });
+  return out;
+}
+function searchResults(query) {
+  const q = norm(query);
+  if (q.length < 2) return `<p class="muted small">Exemples : commandements, profession de foi, KCC, purification, onction, dates…</p>`;
+  SEARCH_INDEX = SEARCH_INDEX || buildIndex();
+  const words = q.split(" ");
+  const hits = SEARCH_INDEX.filter(e => words.every(w => e.n.includes(w)));
+  if (!hits.length) return `<div class="empty"><div class="e-ic">🔎</div><p>Aucun résultat pour « ${esc(query)} ».</p></div>`;
+  const seen = new Set(), rows = [];
+  hits.forEach(h => { const k = h.chapter.id + "|" + h.text; if (!seen.has(k)) { seen.add(k); rows.push(h); } });
+  return `<p class="muted small">${rows.length} résultat(s)</p>` + rows.slice(0, 40).map(h => {
+    const href = h.isDate ? "#/dates" : "#/chapter/" + h.chapter.id;
+    const act = h.isDate ? "" : ` data-action="open-chapter" data-id="${h.chapter.id}"`;
+    return `<a class="res" href="${href}"${act}><b>${h.isDate ? "📜 Dates historiques" : "Chapitre " + h.chapter.id + " · " + esc(h.chapter.title)}</b><p>${highlight(h.text, words)}</p></a>`;
+  }).join("");
+}
+function viewSearch() {
+  setTimeout(() => { const i = document.getElementById("search-input"); if (i) i.focus(); }, 50);
+  return `<div class="page-head"><h1>🔎 Rechercher dans la formation</h1></div>
+  <label class="sr-only" for="search-input">Rechercher</label>
+  <input id="search-input" class="input" type="search" placeholder="Ex. : commandements, onction, dates…" autocomplete="off">
+  <div id="search-results" class="results">${searchResults("")}</div>`;
+}
+
+function viewAbout() {
+  return `<div class="page-head"><h1>À propos de l'application</h1></div>
+  <section class="card" style="text-align:center">
+    <div style="display:flex;justify-content:center;margin-bottom:10px">${logoSVG(64)}</div>
+    <p style="font-family:var(--serif);font-size:1.05rem">JE SUIS KCCiste – FORMATION est une application destinée à accompagner les néophytes dans l'apprentissage progressif des bases doctrinales de l'${CONFIG.CHURCH}.</p>
+    <p class="muted small">${CONFIG.PARISH} · Version 1.0 · © ${CONFIG.YEAR}</p>
+  </section>
+  <section class="card"><p class="small muted" style="margin:0">Créateur de l'application</p><p style="margin:2px 0 10px;font-weight:600">${CONFIG.CREATOR}</p>
+    <p class="small muted" style="margin:0">Contact WhatsApp</p><p style="margin:2px 0 0"><a href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></p></section>
+  <section class="card"><p class="small muted" style="margin:0">Données</p><p class="small">Votre nom, votre progression et vos favoris sont enregistrés uniquement sur cet appareil. Cette version ne comporte pas de compte en ligne.</p></section>`;
+}
+
+function viewContact() {
+  return `<div class="page-head"><h1>💬 Contact</h1><p>Pour toute question sur la formation ou l'accès à l'application.</p></div>
+  <section class="card">
+    <p class="small muted" style="margin:0">Créateur</p><p style="margin:2px 0 4px;font-weight:600">${CONFIG.CREATOR}</p>
+    <p class="contact-num">WhatsApp : ${CONFIG.WHATSAPP_DISPLAY}</p>
+    <div class="btn-row">
+      <a class="btn btn-gold btn-block" href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">💬 Contacter sur WhatsApp</a>
+      <a class="btn btn-ghost btn-block" href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener">Demander les informations d'accès</a>
+    </div>
+  </section>`;
+}
+
+function viewMenu() {
+  const u = AuthService.current();
+  return `<section class="card profile"><div class="avatar">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</div>
+    <div><b>${esc(u.name)}</b><div class="muted small">${esc(u.parish)}</div></div></section>
+  <nav class="menu-list" aria-label="Menu">${MENU.map(m => menuLink(m, "", "")).join("")}</nav>
+  <div class="btn-row"><button class="btn btn-ghost btn-block" data-action="logout">Changer de profil</button></div>`;
+}
+
+function viewFinished() {
+  const st = Progress.stats();
+  if (!st.allDone) return `<div class="empty card"><div class="e-ic">🎓</div><p>Il vous reste ${st.total - st.done} chapitre(s) à terminer.</p><a class="btn btn-royal" href="#/courses">Continuer la formation</a></div>`;
+  return `<section class="card card-dark final-hero fade"><div class="medal">🎓</div><h1>FORMATION TERMINÉE</h1>
+    <p style="font-family:var(--serif);font-size:1.08rem">Félicitations ! Vous avez terminé le parcours de formation.</p></section>
+  <div class="stats">
+    <div class="stat"><small>Chapitres terminés</small><b>${st.done} / ${st.total}</b></div>
+    <div class="stat"><small>Score moyen</small><b>${st.avg} %</b></div>
+    <div class="stat"><small>Meilleur score</small><b>${st.best} %</b></div>
+  </div>
+  <div class="btn-row">
+    <a class="btn btn-royal btn-block" href="#/courses">REVOIR LA FORMATION</a>
+    <a class="btn btn-gold btn-block" href="#/quiz/final">REFAIRE L'ÉVALUATION</a>
+    <a class="btn btn-ghost btn-block" href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">💬 CONTACTER LE PRÉDICATEUR</a>
+  </div>`;
+}
+
+/* ======================================================================
+   Rendu principal
+   ====================================================================== */
+const VIEWS = {
+  home: viewHome, courses: viewCourses, chapter: viewChapter, quiz: viewQuiz, tests: viewTests,
+  progress: viewProgress, dates: viewDates, practices: viewPractices, revision: viewRevision,
+  favorites: viewFavorites, search: viewSearch, about: viewAbout, contact: viewContact,
+  menu: viewMenu, finished: viewFinished
+};
+
+function render() {
+  const app = document.getElementById("app");
+  const { name, param } = parseRoute();
+  const user = AuthService.current();
+
+  if (!user) {
+    if (name === "member") app.innerHTML = viewMember();
+    else if (name === "access") app.innerHTML = viewAccess();
+    else return replaceRoute("access");
+    document.title = CONFIG.APP_NAME; window.scrollTo(0, 0); return;
+  }
+  if (name === "welcome") { app.innerHTML = viewWelcome(); window.scrollTo(0, 0); return; }
+  if (!VIEWS[name]) return replaceRoute("home");
+
+  const content = VIEWS[name](param);
+  let title = TITLES[name] || "";
+  if (name === "chapter" && getChapter(param)) title = "Chapitre " + param;
+  if (name === "quiz") title = param === "final" ? "Évaluation finale" : "Test · Chapitre " + param;
+  app.innerHTML = shell(name, title, content);
+  document.title = (title ? title + " · " : "") + CONFIG.APP_NAME;
+  window.scrollTo(0, 0);
+}
+
+/* ======================================================================
+   Actions (délégation d'événements)
+   ====================================================================== */
+const Actions = {
+  back() { if (history.length > 1) history.back(); else go("home"); },
+  continue(el) { toast("📚 Formation continuée"); go(el.getAttribute("href").replace("#/", "")); },
+  "open-chapter"(el) {
+    const id = Number(el.dataset.id);
+    if (Progress.isUnlocked(id)) go("chapter/" + id);
+    else toast(`🔒 Terminez d'abord le chapitre ${id - 1}`);
+  },
+  locked(el) { toast(`🔒 Terminez d'abord le chapitre ${Number(el.dataset.id) - 1}`); },
+  "complete-chapter"(el) {
+    const id = Number(el.dataset.id);
+    if (Progress.complete(id)) toast("✓ Chapitre terminé");
+    render();
+  },
+  "fav-chapter"(el) {
+    const c = getChapter(el.dataset.id);
+    const on = Favs.toggle({ key: "c:" + c.id, type: "chapter", chapterId: c.id, label: c.title });
+    el.setAttribute("aria-pressed", on); el.textContent = on ? "★" : "☆";
+    toast(on ? "⭐ Ajouté aux favoris" : "Retiré des favoris");
+  },
+  "fav-note"(el) {
+    const c = getChapter(el.dataset.id), i = Number(el.dataset.i);
+    const on = Favs.toggle({ key: `n:${c.id}:${i}`, type: "note", chapterId: c.id, label: c.keyPoints[i] });
+    el.setAttribute("aria-pressed", on); el.textContent = on ? "★" : "☆";
+    toast(on ? "⭐ Notion ajoutée aux favoris" : "Retiré des favoris");
+  },
+  qa(el) {
+    if (Quiz.state.answered) return;
+    const q = Quiz.current();
+    const buttons = [...Quiz.box().querySelectorAll(".opt")];
+    if (q.type === "mcq") {
+      const i = Number(el.dataset.i), ok = q._opts[i].ok;
+      buttons.forEach((b, j) => { if (q._opts[j].ok) b.classList.add("correct"); });
+      if (!ok) el.classList.add("wrong");
+      Quiz.answer(ok, esc(q._opts.find(o => o.ok).t));
+    } else {
+      const v = el.dataset.v === "true", ok = v === q.answer;
+      buttons.forEach(b => { if ((b.dataset.v === "true") === q.answer) b.classList.add("correct"); });
+      if (!ok) el.classList.add("wrong");
+      Quiz.answer(ok, q.answer ? "Vrai" : "Faux");
+    }
+  },
+  "q-short"() {
+    if (Quiz.state.answered) return;
+    const q = Quiz.current(), input = document.getElementById("q-short");
+    const val = norm(input.value);
+    if (!val) { toast("Veuillez saisir une réponse"); input.focus(); return; }
+    const ok = q.accept.some(a => norm(a) === val);
+    input.style.borderColor = ok ? "var(--ok)" : "var(--err)";
+    Quiz.answer(ok, esc(q.display));
+  },
+  "q-match"() {
+    if (Quiz.state.answered) return;
+    const q = Quiz.current();
+    const vals = q.pairs.map((p, i) => document.getElementById("ms" + i).value);
+    if (vals.some(v => !v)) { toast("Associez chaque élément avant de valider"); return; }
+    let ok = true;
+    q.pairs.forEach((p, i) => { const good = vals[i] === p[1]; if (!good) ok = false; document.getElementById("mr" + i).classList.add(good ? "ok" : "ko"); });
+    Quiz.answer(ok, "<br>" + q.pairs.map(p => `${esc(p[0])} → ${esc(p[1])}`).join("<br>"));
+  },
+  "q-next"() { Quiz.next(); },
+  "q-retry"() { render(); },
+  "reset-progress"() {
+    askConfirm("Voulez-vous vraiment effacer toute votre progression ? Cette action est définitive.", "Effacer").then(ok => { if (ok) { Progress.reset(); toast("Progression réinitialisée"); render(); } });
+  },
+  logout() {
+    askConfirm("Changer de profil ? Votre progression reste enregistrée sur cet appareil.", "Changer").then(ok => { if (ok) { AuthService.logout(); replaceRoute("access"); } });
+  }
+};
+
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-action]");
+  if (!el || !Actions[el.dataset.action]) return;
+  e.preventDefault();
+  Actions[el.dataset.action](el, e);
+});
+
+document.addEventListener("submit", (e) => {
+  if (e.target.id !== "member-form") return;
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const name = String(f.get("name") || "").trim(), parish = String(f.get("parish") || "").trim();
+  const err = [];
+  if (name.length < 3) err.push("Veuillez indiquer votre nom complet (au moins 3 caractères).");
+  if (!parish) err.push("Veuillez indiquer votre paroisse.");
+  const code = String(f.get("code") || "");
+  if (!code.trim()) err.push("Veuillez saisir le code d'accès.");
+  else if (!AuthService.checkCode(code)) err.push("Code d'accès incorrect. Vérifiez l'orthographe ou contactez le Prédicateur sur WhatsApp.");
+  const box = document.getElementById("form-error");
+  if (err.length) {
+    box.innerHTML = `<div class="form-error">${err.map(esc).join("<br>")}<br><a href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">💬 Demander le code sur WhatsApp</a></div>`;
+    return;
+  }
+  AuthService.login({ name, parish });
+  go("welcome");
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.id === "search-input") document.getElementById("search-results").innerHTML = searchResults(e.target.value);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "q-short") { e.preventDefault(); Actions["q-short"](); }
+});
+
+window.addEventListener("hashchange", render);
+
+/* ======================================================================
+   Démarrage
+   ====================================================================== */
+(function init() {
+  Progress.load(); Favs.load();
+  document.getElementById("favicon").href = "data:image/svg+xml," + encodeURIComponent(logoSVG(64));
+  render();
+})();
+</script>
+</body>
+</html>
