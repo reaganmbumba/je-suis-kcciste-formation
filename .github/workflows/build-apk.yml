@@ -5,10 +5,10 @@ android {
     compileSdk 36
 
     defaultConfig {
-        applicationId "cd.jesuiskcciste.formation"
+        applicationId "com.jesuiskcciste.formation"
         minSdk 21
         targetSdk 36
-        versionCode 4        // augmentez de 1 à chaque envoi sur Google Play
+        versionCode 4
         versionName "1.0"
     }
 
