@@ -5,14 +5,29 @@ android {
     compileSdk 36
 
     defaultConfig {
-        applicationId "cd.jesuiskcciste.formation"
-        minSdk 21            // Android 5.0 et plus
+        applicationId "com.jesuiskcciste.formation"
+        minSdk 21
         targetSdk 36
-        versionCode 3        // augmentez à chaque nouvelle version (2, 3, ...)
+        versionCode 4
         versionName "1.0"
     }
+
+    signingConfigs {
+        release {
+            def ks = System.getenv("KEYSTORE_FILE")
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
-        release { minifyEnabled false }
+        release {
+            minifyEnabled false
+            if (System.getenv("KEYSTORE_FILE")) signingConfig signingConfigs.release
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
