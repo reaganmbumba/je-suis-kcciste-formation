@@ -1,55 +1,36 @@
-name: Construire l'application
+plugins { id 'com.android.application' }
 
-on:
-  push:
-  workflow_dispatch:
+android {
+    namespace 'cd.jesuiskcciste.formation'
+    compileSdk 36
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      HAS_KEY: ${{ secrets.KEYSTORE_BASE64 != '' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.13'
+    defaultConfig {
+        applicationId "com.jesuiskcciste.formation"
+        minSdk 21
+        targetSdk 36
+        versionCode 5
+        versionName "1.1"
+    }
 
-      - name: APK de test
-        run: gradle assembleDebug --no-daemon
-
-      - name: Preparer la cle
-        if: env.HAS_KEY == 'true'
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/upload.jks"
-
-      - name: Fichier AAB Google Play
-        if: env.HAS_KEY == 'true'
-        env:
-          KEYSTORE_FILE: ${{ runner.temp }}/upload.jks
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: gradle bundleRelease --no-daemon
-
-      - name: Renommer les fichiers
-        run: |
-          cp app/build/outputs/apk/debug/app-debug.apk KCCiste-test-telephone.apk
-          if [ -f app/build/outputs/bundle/release/app-release.aab ]; then
-            cp app/build/outputs/bundle/release/app-release.aab app-release.aab
-          fi
-
-      - name: Publier dans Releases
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ github.run_number }}
-          name: KCCiste Formation - construction ${{ github.run_number }}
-          body: "app-release.aab = fichier pour Google Play. KCCiste-test-telephone.apk = pour tester sur un telephone."
-          files: |
-            app-release.aab
-            KCCiste-test-telephone.apk
+    signingConfigs {
+        release {
+            def ks = System.getenv("KEYSTORE_FILE")
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (System.getenv("KEYSTORE_FILE")) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
