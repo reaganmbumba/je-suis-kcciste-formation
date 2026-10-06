@@ -465,6 +465,8 @@ mark{background:rgba(245,215,110,.6);color:inherit;border-radius:3px;padding:0 2
 .fs-lang{margin-bottom:14px}
 .fs-lang button{background:rgba(255,255,255,.08);border-color:rgba(212,175,55,.45);color:#fff}
 .fs-lang button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--night)}
+.lang-first h2 small{display:block;font-size:.8rem;font-weight:500;opacity:.8;margin-top:4px;letter-spacing:0;text-transform:none}
+.lang-first .btn{font-size:1.05rem}
 .lang-card .lang-switch{justify-content:flex-start;margin-top:8px}
 </style>
 </head>
@@ -766,11 +768,11 @@ function t(fr, vars) {
 let CHAPTERS, DATES, timelineHTML;
 function setLang(l, silent) {
   LANG = LANGS[l] ? l : "fr";
-  try { localStorage.setItem("kcc_lang", LANG); } catch (e) { }
+  if (!silent || silent === "save") { try { localStorage.setItem("kcc_lang", LANG); } catch (e) { } }
   document.documentElement.lang = LANG;
   ({ CHAPTERS, DATES, timelineHTML } = CONTENT[LANG]());
   SEARCH_INDEX = null;
-  if (!silent) render();
+  if (silent !== true && silent !== "save") render();
 }
 function langSwitch(cls) {
   return `<div class="lang-switch ${cls || ""}" role="group" aria-label="Langue / Língua / Language">${Object.keys(LANGS).map(l =>
@@ -2719,6 +2721,19 @@ function fsFooter() {
 /* ======================================================================
    VUES — écrans d'accès
    ====================================================================== */
+/* Premier écran : la personne choisit la langue de sa formation. */
+function langChosen() { try { return !!localStorage.getItem("kcc_lang"); } catch (e) { return true; } }
+function viewLangChoice() {
+  return `<div class="fullscreen"><div class="fs-inner fade">
+    <div class="brand">${logoSVG(78)}</div>
+    <h1 class="fs-title">JE SUIS KCCiste<span>FORMATION</span></h1>
+    <section class="glass lang-first">
+      <h2>🌐 Choisissez votre langue<br><small>Escolha a sua língua · Choose your language</small></h2>
+      <div class="btn-row">${Object.keys(LANGS).map(l => `<button type="button" class="btn btn-block ${l === "fr" ? "btn-gold" : "btn-wa"}" data-action="lang-first" data-l="${l}">${{ fr: "Français", pt: "Português", en: "English" }[l]}</button>`).join("")}</div>
+      <p class="small" style="margin-top:12px">Vous pourrez la changer plus tard dans le Menu.<br>Pode mudá-la mais tarde no Menu. · You can change it later in the Menu.</p>
+    </section>
+  </div></div>`;
+}
 function viewAccess() {
   return `<div class="fullscreen"><div class="fs-inner fade">
     ${langSwitch("fs-lang")}
@@ -3305,6 +3320,7 @@ function render() {
   const user = AuthService.current();
 
   if (!user) {
+    if (!langChosen()) { app.innerHTML = viewLangChoice(); document.title = CONFIG.APP_NAME; window.scrollTo(0, 0); return; }
     if (name === "member") app.innerHTML = viewMember();
     else if (name === "access") app.innerHTML = viewAccess();
     else return replaceRoute("access");
@@ -3347,6 +3363,7 @@ const Actions = {
   back() { if (history.length > 1) history.back(); else go("home"); },
   continue(el) { toast("📚 " + t("Formation continuée")); go(el.getAttribute("href").replace("#/", "")); },
   lang(el) { setLang(el.dataset.l); },
+  "lang-first"(el) { setLang(el.dataset.l, "save"); replaceRoute("access"); },
   "open-chapter"(el) {
     const id = Number(el.dataset.id);
     if (Progress.isUnlocked(id)) go("chapter/" + id);
