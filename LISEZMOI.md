@@ -30,3 +30,11 @@ Envoyez l'APK sur le téléphone (WhatsApp, câble, Drive), ouvrez-le et autoris
 ## Publication sur Google Play (plus tard)
 Il faut une version « release » signée avec votre propre clé :
 Android Studio → « Build → Generate Signed App Bundle / APK ». Conservez précieusement la clé.
+
+## Version iPhone (sans App Store)
+La même application est publiée comme site web installable grâce à GitHub Pages
+(fichier `.github/workflows/pages.yml`, dossier `web/` : manifeste, icônes, mode hors ligne).
+1. Une seule fois : dépôt **public**, puis « Settings → Pages → Source : GitHub Actions ».
+2. À chaque modification de `index.html` sur `main`, le site est republié automatiquement.
+3. Sur l'iPhone : ouvrez le lien dans **Safari**, touchez **Partager** ⬆️ puis
+   **« Sur l'écran d'accueil »**. L'icône apparaît comme une application et fonctionne hors ligne.
