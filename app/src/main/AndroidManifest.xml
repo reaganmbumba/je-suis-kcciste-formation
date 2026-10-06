@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Aucune permission : l'application fonctionne entièrement hors ligne. -->
+<!-- Fonctionne entièrement hors ligne. Seule permission : enregistrer le certificat
+     dans la galerie sur Android 9 et moins (inutile à partir d'Android 10). -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <!-- Android 11+ : permet de savoir si WhatsApp / Facebook sont installés pour le partage direct -->
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+        <package android:name="com.facebook.katana" />
+    </queries>
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
@@ -16,5 +24,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:name=".CertificateProvider"
+            android:authorities="${applicationId}.certificats"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 </manifest>
