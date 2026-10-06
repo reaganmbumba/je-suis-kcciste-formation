@@ -443,7 +443,7 @@ mark{background:rgba(245,215,110,.6);color:inherit;border-radius:3px;padding:0 2
 .cert-foot .c-seal svg{width:100%;height:100%;display:block;filter:drop-shadow(0 4px 8px rgba(120,90,10,.35))}
 .cert-foot .c-qr{text-align:center;width:250px;white-space:nowrap}
 .cert-foot .c-qr .qr-box{display:inline-block;background:#fff;padding:7px;border:1.5px solid #C9A43A;border-radius:6px}
-.cert-foot .c-qr svg{width:104px;height:104px;display:block}
+.cert-foot .c-qr svg{width:132px;height:132px;display:block}
 .cert-foot .c-num{display:block;font-weight:700;color:var(--night);letter-spacing:.05em;margin-top:6px}
 .cert-foot .c-scan{display:block;font-size:11px}
 #cert-print{display:none}
@@ -1153,7 +1153,7 @@ const Certificate = {
     ].join("\n");
   },
   qrSVG(c) {
-    const q = qrcode(0, "M"); q.addData(this.qrContent(c)); q.make();
+    const q = qrcode(0, "L"); q.addData(this.qrContent(c)); q.make();
     return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
   }
 };
