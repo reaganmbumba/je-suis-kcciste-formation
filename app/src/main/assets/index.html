@@ -11,6 +11,8 @@
 <meta name="description" content="Formation doctrinale pour les néophytes – Église Bon Nouveau Message (KCC)">
 <title>JE SUIS KCCiste – FORMATION</title>
 <link id="favicon" rel="icon" href="">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
 <!--
   =====================================================================
@@ -458,6 +460,13 @@ mark{background:rgba(245,215,110,.6);color:inherit;border-radius:3px;padding:0 2
   #cert-print{display:block}
   #cert-print .cert{transform:none!important;width:297mm;height:210mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+/* Version web (iPhone…) : image du certificat et bandeau d'installation */
+.img-modal{max-width:560px;max-height:calc(100vh - 40px);overflow:auto;text-align:center}
+.img-modal img{width:100%;height:auto;display:block;border-radius:6px;box-shadow:var(--shadow-lg);-webkit-touch-callout:default;user-select:auto}
+.img-modal p{margin:12px 0}
+.install-tip{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + var(--safe-b) + 12px);z-index:55;background:var(--night);color:#fff;border:1.5px solid var(--gold);border-radius:var(--radius);padding:12px 40px 12px 14px;font-size:.9rem;line-height:1.4;box-shadow:var(--shadow-lg)}
+.install-tip b{color:var(--gold-light)}
+.install-tip button{position:absolute;top:6px;right:6px;width:30px;height:30px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:1rem;cursor:pointer}
 /* Choix de la langue */
 .lang-switch{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .lang-switch button{font:inherit;font-size:.82rem;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;border:1.5px solid var(--line);background:var(--surface);color:var(--text)}
@@ -703,6 +712,12 @@ const STR_PT_EN = {
   "Impossible de créer l'image. Utilisez « Enregistrer en PDF ».": ["Não foi possível criar a imagem. Use « Guardar em PDF ».", "Could not create the image. Use “Save as PDF”."],
   "Certificat enregistré dans la galerie (Images › KCCiste)": ["Certificado guardado na galeria (Imagens › KCCiste)", "Certificate saved to the gallery (Pictures › KCCiste)"],
   "Impossible d'enregistrer l'image dans le téléphone.": ["Não foi possível guardar a imagem no telefone.", "Could not save the image to the phone."],
+  "Appuyez longuement sur l'image puis « Ajouter à Photos » pour l'enregistrer.": ["Mantenha premida a imagem e escolha « Adicionar a Fotografias » para a guardar.", "Press and hold the image, then tap “Add to Photos” to save it."],
+  "PARTAGER L'IMAGE": ["PARTILHAR A IMAGEM", "SHARE THE IMAGE"],
+  "TÉLÉCHARGER L'IMAGE": ["DESCARREGAR A IMAGEM", "DOWNLOAD THE IMAGE"],
+  "FERMER": ["FECHAR", "CLOSE"],
+  "Les boutons de partage et « Enregistrer dans le téléphone » affichent l'image du certificat : appuyez longuement dessus pour l'ajouter à vos Photos. Pour le PDF : dans la fenêtre d'impression, touchez Partager puis « Enregistrer dans Fichiers » (iPhone), ou choisissez « Enregistrer au format PDF ».": ["Os botões de partilha e « Guardar no telefone » mostram a imagem do certificado: mantenha-a premida para a adicionar às Fotografias. Para o PDF: na janela de impressão, toque em Partilhar e depois « Guardar em Ficheiros » (iPhone), ou escolha « Guardar como PDF ».", "The share buttons and “Save to phone” show the certificate image: press and hold it to add it to your Photos. For the PDF: in the print window, tap Share then “Save to Files” (iPhone), or choose “Save as PDF”."],
+  "Installer l'application : touchez <b>Partager</b> ⬆️ en bas de Safari, puis <b>« Sur l'écran d'accueil »</b>.": ["Instalar a aplicação: toque em <b>Partilhar</b> ⬆️ no Safari e depois em <b>« Adicionar ao ecrã principal »</b>.", "Install the app: tap <b>Share</b> ⬆️ in Safari, then <b>“Add to Home Screen”</b>."],
   "Application introuvable : choisissez une autre application.": ["Aplicação não encontrada: escolha outra aplicação.", "App not found: choose another app."],
   "Il vous reste {n} chapitre(s) à terminer.": ["Faltam-lhe {n} capítulo(s) para concluir.", "You have {n} chapter(s) left to complete."],
   "FORMATION TERMINÉE": ["FORMAÇÃO CONCLUÍDA", "COURSE COMPLETED"],
@@ -3225,7 +3240,8 @@ function viewCertificate() {
     <button class="btn btn-ghost btn-block" data-action="share-cert" data-target="">📤 ${t("AUTRES APPLICATIONS")}</button>
     <button class="btn btn-gold btn-block" data-action="print-cert">📄 ${t("ENREGISTRER EN PDF")}</button>
   </div>
-  <p class="muted small">${t("« Enregistrer dans le téléphone » place l'image du certificat dans la galerie (dossier Images › KCCiste). Pour le PDF, choisissez « Enregistrer au format PDF » dans la fenêtre qui s'ouvre.")}</p>`;
+  <p class="muted small">${window.KCCAndroid ? t("« Enregistrer dans le téléphone » place l'image du certificat dans la galerie (dossier Images › KCCiste). Pour le PDF, choisissez « Enregistrer au format PDF » dans la fenêtre qui s'ouvre.")
+    : t("Les boutons de partage et « Enregistrer dans le téléphone » affichent l'image du certificat : appuyez longuement dessus pour l'ajouter à vos Photos. Pour le PDF : dans la fenêtre d'impression, touchez Partager puis « Enregistrer dans Fichiers » (iPhone), ou choisissez « Enregistrer au format PDF ».")}</p>`;
 }
 /* Image JPEG du certificat (2246 × 1588 px), pour l'enregistrer ou la partager.
    Le certificat est copié dans un SVG <foreignObject> avec ses styles, puis dessiné sur un canvas. */
@@ -3239,13 +3255,13 @@ function certificateImage() {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1123" height="794"><foreignObject x="0" y="0" width="1123" height="794">` +
       `<div xmlns="http://www.w3.org/1999/xhtml" style="margin:0"><style>${css.replace(/</g, "\\3C ")}</style>${xhtml}</div></foreignObject></svg>`;
     const img = new Image();
-    img.onload = () => {
+    img.onload = () => setTimeout(() => {   // Safari (iPhone) charge les images du SVG avec un léger retard
       try {
         const k = 2, cv = document.createElement("canvas"); cv.width = 1123 * k; cv.height = 794 * k;
         const g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height); g.scale(k, k); g.drawImage(img, 0, 0);
         resolve(cv.toDataURL("image/jpeg", 0.92));
       } catch (e) { reject(e); }
-    };
+    }, window.KCCAndroid ? 0 : 300);
     img.onerror = () => reject(new Error("svg-load"));
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   });
@@ -3263,12 +3279,34 @@ async function shareCertificate(target) {
     else KCCAndroid.shareImage(b64, name, target, t("Mon certificat") + " " + CONFIG.APP_NAME, t("Application introuvable : choisissez une autre application."));
     return;
   }
-  /* Hors de l'application Android (navigateur) : partage du système ou téléchargement. */
+  /* Hors de l'application Android (navigateur, iPhone) : l'image s'affiche dans une fenêtre.
+     Sur iPhone, un appui long l'ajoute à Photos ; le bouton Partager ouvre WhatsApp, Facebook, Fichiers…
+     (le partage est lancé par un nouveau toucher, car Safari refuse un partage qui n'en vient pas). */
+  let file = null;
   try {
-    const blob = await (await fetch(data)).blob(), file = new File([blob], name, { type: "image/jpeg" });
-    if (target !== "save" && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
-  } catch (e) { /* on télécharge l'image */ }
-  const a = document.createElement("a"); a.href = data; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    const blob = await (await fetch(data)).blob(); file = new File([blob], name, { type: "image/jpeg" });
+    if (!(navigator.canShare && navigator.canShare({ files: [file] }))) file = null;
+  } catch (e) { file = null; }
+  showCertImage(data, name, file);
+}
+function showCertImage(data, name, file) {
+  const o = document.createElement("div"); o.className = "modal-bg";
+  o.innerHTML = `<div class="modal img-modal" role="dialog" aria-modal="true">
+    <img src="${data}" alt="${esc(t("Mon certificat"))}">
+    <p class="muted small">${t("Appuyez longuement sur l'image puis « Ajouter à Photos » pour l'enregistrer.")}</p>
+    <div class="btn-row">
+      ${file ? `<button class="btn btn-royal btn-block" data-r="share">📤 ${t("PARTAGER L'IMAGE")}</button>` : ""}
+      <a class="btn btn-ghost btn-block" href="${data}" download="${esc(name)}">💾 ${t("TÉLÉCHARGER L'IMAGE")}</a>
+      <button class="btn btn-ghost btn-block" data-r="close">${t("FERMER")}</button>
+    </div></div>`;
+  const close = () => { o.remove(); window.removeEventListener("hashchange", close); };
+  o.addEventListener("click", e => {
+    const b = e.target.closest("[data-r]");
+    if (e.target === o || (b && b.dataset.r === "close")) return close();
+    if (b && b.dataset.r === "share") navigator.share({ files: [file], title: name }).catch(() => { });
+  });
+  window.addEventListener("hashchange", close);
+  document.body.appendChild(o);
 }
 
 /* Réduit le certificat (format A4) à la largeur de l'écran. */
@@ -3469,7 +3507,21 @@ window.addEventListener("hashchange", render);
   Progress.load(); Favs.load();
   document.getElementById("favicon").href = APP_LOGO;
   render();
+  if (!window.KCCAndroid && /^https?:$/.test(location.protocol)) webAppSetup();
 })();
+
+/* Version web : fonctionne hors ligne une fois ouverte, et explique l'installation sur iPhone. */
+function webAppSetup() {
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const installed = navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+  let seen = false; try { seen = localStorage.getItem("kcc_install_tip") === "1"; } catch (e) { }
+  if (!ios || installed || seen) return;
+  const tip = document.createElement("div"); tip.className = "install-tip"; tip.setAttribute("role", "note");
+  tip.innerHTML = `${t("Installer l'application : touchez <b>Partager</b> ⬆️ en bas de Safari, puis <b>« Sur l'écran d'accueil »</b>.")}<button type="button" aria-label="${t("FERMER")}">✕</button>`;
+  tip.querySelector("button").addEventListener("click", () => { tip.remove(); try { localStorage.setItem("kcc_install_tip", "1"); } catch (e) { } });
+  document.body.appendChild(tip);
+}
 </script>
 </body>
 </html>
