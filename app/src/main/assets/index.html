@@ -458,6 +458,14 @@ mark{background:rgba(245,215,110,.6);color:inherit;border-radius:3px;padding:0 2
   #cert-print{display:block}
   #cert-print .cert{transform:none!important;width:297mm;height:210mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+/* Choix de la langue */
+.lang-switch{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.lang-switch button{font:inherit;font-size:.82rem;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;border:1.5px solid var(--line);background:var(--surface);color:var(--text)}
+.lang-switch button[aria-pressed="true"]{background:var(--night);border-color:var(--night);color:var(--gold-light)}
+.fs-lang{margin-bottom:14px}
+.fs-lang button{background:rgba(255,255,255,.08);border-color:rgba(212,175,55,.45);color:#fff}
+.fs-lang button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--night)}
+.lang-card .lang-switch{justify-content:flex-start;margin-top:8px}
 </style>
 </head>
 <body>
@@ -497,10 +505,285 @@ const CONFIG = {
   FINAL_EXAM_SIZE: 30,     // nombre de questions de la révision générale (20 à 30)
   /* Texte du certificat remis après la réussite de l'évaluation finale. */
   CERT_LEVEL: "Niveau 1",   // niveau de la formation, affiché sur le certificat
-  CERT_TEXT: "a suivi avec succès la formation doctrinale des néophytes « Je suis KCCiste » de l'Église Bon Nouveau Message (KCC) et réussi l'évaluation finale.",
+  CERT_TEXT: "qui a suivi avec succès la formation doctrinale des néophytes « Je suis KCCiste » de l'Église Bon Nouveau Message (KCC) et réussi l'évaluation finale.",
   MSG_ACCESS: "Bonjour Prédicateur Reagan MBUMBA, je souhaite obtenir l'accès à l'application JE SUIS KCCiste – FORMATION.",
   MSG_CONTACT: "Bonjour Prédicateur Reagan MBUMBA, je suis utilisateur de l'application JE SUIS KCCiste – FORMATION et je souhaite obtenir des informations."
 };
+
+/* ======================================================================
+   [LANGUES] Français (par défaut), Português, English
+   t("texte français", {variables}) renvoie la traduction de la langue choisie.
+   Pour corriger une traduction : modifiez la ligne correspondante ci-dessous.
+   ====================================================================== */
+const LANGS = { fr: "FR", pt: "PT", en: "EN" };
+let LANG = (() => { try { const l = localStorage.getItem("kcc_lang"); return LANGS[l] ? l : "fr"; } catch (e) { return "fr"; } })();
+const LOCALE = () => ({ fr: "fr-FR", pt: "pt-PT", en: "en-GB" })[LANG];
+
+/* Clé = texte français ; [portugais, anglais] */
+const STR_PT_EN = {
+  "Paroisse de {p}": ["Paróquia de {p}", "Parish of {p}"],
+  "Certificat de formation": ["Certificado de formação", "Training certificate"],
+  "Nom": ["Nome", "Name"],
+  "Paroisse": ["Paróquia", "Parish"],
+  "Niveau": ["Nível", "Level"],
+  "Résultat": ["Resultado", "Result"],
+  "Délivré par": ["Emitido por", "Issued by"],
+  "Annuler": ["Cancelar", "Cancel"],
+  "Confirmer": ["Confirmar", "Confirm"],
+  "Menu principal": ["Menu principal", "Main menu"],
+  "Créateur": ["Criador", "Creator"],
+  "Retour": ["Voltar", "Back"],
+  "Rechercher dans la formation": ["Pesquisar na formação", "Search the course"],
+  "Mes favoris": ["Os meus favoritos", "My favourites"],
+  "Formation pour les néophytes": ["Formação para os neófitos", "Training for neophytes"],
+  "Formation doctrinale pour les néophytes": ["Formação doutrinal para os neófitos", "Doctrinal training for neophytes"],
+  "Cette application est destinée à accompagner les néophytes dans l'apprentissage progressif des bases de la doctrine KCC.": ["Esta aplicação destina-se a acompanhar os neófitos na aprendizagem progressiva das bases da doutrina KCC.", "This app is designed to guide neophytes step by step as they learn the foundations of KCC doctrine."],
+  "ACCÈS À LA FORMATION": ["ACESSO À FORMAÇÃO", "ACCESS TO THE COURSE"],
+  "Pour accéder à cette formation, vous devez être membre du groupe {g}.": ["Para aceder a esta formação, deve ser membro do grupo {g}.", "To access this course, you must be a member of the {g} group."],
+  "Si vous êtes membre, continuez vers la formation.": ["Se é membro, continue para a formação.", "If you are a member, continue to the course."],
+  "Si vous souhaitez obtenir les informations d'accès, contactez directement le créateur sur WhatsApp.": ["Se deseja obter as informações de acesso, contacte diretamente o criador pelo WhatsApp.", "To get the access details, contact the creator directly on WhatsApp."],
+  "JE SUIS MEMBRE": ["SOU MEMBRO", "I AM A MEMBER"],
+  "ÉCRIRE SUR WHATSAPP": ["ESCREVER NO WHATSAPP", "WRITE ON WHATSAPP"],
+  "Vous pouvez nous contacter directement sur WhatsApp pour obtenir les informations d'accès.": ["Pode contactar-nos diretamente pelo WhatsApp para obter as informações de acesso.", "You can contact us directly on WhatsApp to get the access details."],
+  "ACCÈS MEMBRE": ["ACESSO DE MEMBRO", "MEMBER ACCESS"],
+  "Indiquez votre nom, votre paroisse et le code d'accès communiqué aux membres du groupe Je suis KCCiste.": ["Indique o seu nome, a sua paróquia e o código de acesso comunicado aos membros do grupo Je suis KCCiste.", "Enter your name, your parish and the access code given to members of the Je suis KCCiste group."],
+  "Nom complet": ["Nome completo", "Full name"],
+  "Ex. :": ["Ex.:", "E.g.:"],
+  "Code d'accès": ["Código de acesso", "Access code"],
+  "Code communiqué au groupe": ["Código comunicado ao grupo", "Code shared with the group"],
+  "CONTINUER": ["CONTINUAR", "CONTINUE"],
+  "Vos informations restent uniquement sur cet appareil. Aucun mot de passe n'est demandé.": ["As suas informações ficam apenas neste aparelho. Não é pedida nenhuma palavra-passe.", "Your information stays on this device only. No password is required."],
+  "Bienvenue dans": ["Bem-vindo à", "Welcome to"],
+  "Cette plateforme a été conçue pour accompagner les néophytes dans leur découverte progressive des bases de l'enseignement doctrinal KCC.": ["Esta plataforma foi concebida para acompanhar os neófitos na descoberta progressiva das bases do ensino doutrinal KCC.", "This platform was designed to guide neophytes as they gradually discover the foundations of KCC doctrinal teaching."],
+  "Prenez le temps de lire chaque chapitre, de comprendre les notions importantes et de répondre aux questions proposées.": ["Tome o tempo de ler cada capítulo, compreender as noções importantes e responder às perguntas propostas.", "Take the time to read each chapter, understand the key ideas and answer the questions."],
+  "COMMENCER LA FORMATION": ["COMEÇAR A FORMAÇÃO", "START THE COURSE"],
+  "Bienvenue dans votre formation": ["Bem-vindo à sua formação", "Welcome to your course"],
+  "Parcours des néophytes": ["Percurso dos neófitos", "Neophytes' journey"],
+  "Ma progression": ["O meu progresso", "My progress"],
+  "chapitres": ["capítulos", "chapters"],
+  "Chapitres terminés": ["Capítulos concluídos", "Chapters completed"],
+  "Score moyen": ["Pontuação média", "Average score"],
+  "Continuer la formation": ["Continuar a formação", "Continue the course"],
+  "Dernier chapitre consulté": ["Último capítulo consultado", "Last chapter viewed"],
+  "Prochaine étape": ["Próxima etapa", "Next step"],
+  "Parcours terminé": ["Percurso concluído", "Journey completed"],
+  "Vous avez terminé tous les chapitres.": ["Concluiu todos os capítulos.", "You have completed all the chapters."],
+  "Voir mon bilan": ["Ver o meu balanço", "View my summary"],
+  "Terminé": ["Concluído", "Completed"],
+  "meilleur score": ["melhor pontuação", "best score"],
+  "En cours": ["Em curso", "In progress"],
+  "Disponible": ["Disponível", "Available"],
+  "Terminez le chapitre {n} pour débloquer": ["Conclua o capítulo {n} para desbloquear", "Complete chapter {n} to unlock"],
+  "Réviser": ["Rever", "Review"],
+  "Étudier": ["Estudar", "Study"],
+  "Chapitre": ["Capítulo", "Chapter"],
+  "La formation": ["A formação", "The course"],
+  "{d} / {n} chapitres terminés. Chaque chapitre se débloque après le précédent ; les chapitres terminés restent accessibles avec « Réviser ».": ["{d} / {n} capítulos concluídos. Cada capítulo é desbloqueado após o anterior; os capítulos concluídos continuam acessíveis com « Rever ».", "{d} / {n} chapters completed. Each chapter unlocks after the previous one; completed chapters stay available with “Review”."],
+  "Chapitre verrouillé": ["Capítulo bloqueado", "Chapter locked"],
+  "Terminez d'abord le chapitre {n} pour accéder à ce contenu.": ["Conclua primeiro o capítulo {n} para aceder a este conteúdo.", "Complete chapter {n} first to access this content."],
+  "Voir les chapitres": ["Ver os capítulos", "View the chapters"],
+  "Chapitre introuvable.": ["Capítulo não encontrado.", "Chapter not found."],
+  "Évaluation finale : jusqu'à {n} questions tirées de tous les chapitres.": ["Avaliação final: até {n} perguntas tiradas de todos os capítulos.", "Final assessment: up to {n} questions drawn from all the chapters."],
+  "Meilleur score": ["Melhor pontuação", "Best score"],
+  "tentative(s)": ["tentativa(s)", "attempt(s)"],
+  "Commencer l'évaluation finale": ["Começar a avaliação final", "Start the final assessment"],
+  "questions": ["perguntas", "questions"],
+  "réussite à partir de {p} %": ["aprovação a partir de {p} %", "pass mark {p} %"],
+  "dernier": ["último", "last"],
+  "Refaire le test": ["Refazer o teste", "Retake the test"],
+  "Commencer le test": ["Começar o teste", "Start the test"],
+  "Le test de ce chapitre sera ajouté lorsque le contenu doctrinal sera complété.": ["O teste deste capítulo será acrescentado quando o conteúdo doutrinal estiver completo.", "The test for this chapter will be added once the doctrinal content is complete."],
+  "Chapitre terminé": ["Capítulo concluído", "Chapter completed"],
+  "Marquer comme lu et terminé": ["Marcar como lido e concluído", "Mark as read and completed"],
+  "Ajouter le chapitre aux favoris": ["Adicionar o capítulo aos favoritos", "Add the chapter to favourites"],
+  "LEÇON": ["LIÇÃO", "LESSON"],
+  "À RETENIR": ["A RETER", "KEY POINTS"],
+  "Ajouter cette notion aux favoris": ["Adicionar esta noção aos favoritos", "Add this point to favourites"],
+  "Points essentiels": ["Pontos essenciais", "Key points"],
+  "COMPRENDRE": ["COMPREENDER", "UNDERSTAND"],
+  "MOTS IMPORTANTS": ["PALAVRAS IMPORTANTES", "KEY WORDS"],
+  "SOURCE DU COURS": ["FONTE DO CURSO", "COURSE SOURCE"],
+  "ÉVALUATION FINALE": ["AVALIAÇÃO FINAL", "FINAL ASSESSMENT"],
+  "TEST DU CHAPITRE": ["TESTE DO CAPÍTULO", "CHAPTER TEST"],
+  "Vrai": ["Verdadeiro", "True"],
+  "Faux": ["Falso", "False"],
+  "Votre réponse": ["A sua resposta", "Your answer"],
+  "Valider": ["Validar", "Submit"],
+  "Associer": ["Associar", "Match"],
+  "Choisir": ["Escolher", "Choose"],
+  "Question": ["Pergunta", "Question"],
+  "Bonne réponse": ["Resposta certa", "Correct answer"],
+  "Mauvaise réponse": ["Resposta errada", "Wrong answer"],
+  "Voir le résultat": ["Ver o resultado", "See the result"],
+  "Question suivante": ["Pergunta seguinte", "Next question"],
+  "Nouveau meilleur score": ["Nova melhor pontuação", "New best score"],
+  "Excellent travail !": ["Excelente trabalho!", "Excellent work!"],
+  "Très bonne progression.": ["Muito bom progresso.", "Very good progress."],
+  "Bonne progression, continuez ainsi.": ["Bom progresso, continue assim.", "Good progress, keep it up."],
+  "Relisez le chapitre puis réessayez (réussite à partir de {p} %).": ["Releia o capítulo e tente novamente (aprovação a partir de {p} %).", "Reread the chapter and try again (pass mark {p} %)."],
+  "RÉSULTAT": ["RESULTADO", "RESULT"],
+  "réussi": ["aprovado", "passed"],
+  "REFAIRE LE TEST": ["REFAZER O TESTE", "RETAKE THE TEST"],
+  "Voir mon certificat": ["Ver o meu certificado", "View my certificate"],
+  "Voir mon bilan de formation": ["Ver o balanço da minha formação", "View my course summary"],
+  "CHAPITRE SUIVANT": ["CAPÍTULO SEGUINTE", "NEXT CHAPTER"],
+  "Revoir le chapitre": ["Rever o capítulo", "Review the chapter"],
+  "Test introuvable.": ["Teste não encontrado.", "Test not found."],
+  "Aucun test pour ce chapitre pour le moment.": ["Ainda não há teste para este capítulo.", "No test for this chapter yet."],
+  "Retour au chapitre": ["Voltar ao capítulo", "Back to the chapter"],
+  "RÉVISION GÉNÉRALE": ["REVISÃO GERAL", "GENERAL REVIEW"],
+  "Évaluation finale": ["Avaliação final", "Final assessment"],
+  "QCM": ["Testes", "Quizzes"],
+  "Testez vos connaissances chapitre par chapitre. Un test se débloque avec son chapitre.": ["Teste os seus conhecimentos capítulo a capítulo. Cada teste é desbloqueado com o seu capítulo.", "Test your knowledge chapter by chapter. Each test unlocks with its chapter."],
+  "meilleur": ["melhor", "best"],
+  "Refaire": ["Refazer", "Retake"],
+  "Commencer": ["Começar", "Start"],
+  "Révision générale": ["Revisão geral", "General review"],
+  "Jusqu'à {n} questions tirées de l'ensemble des chapitres.": ["Até {n} perguntas tiradas de todos os capítulos.", "Up to {n} questions drawn from all the chapters."],
+  "Disponible après le chapitre 14.": ["Disponível após o capítulo 14.", "Available after chapter 14."],
+  "Progression générale": ["Progresso geral", "Overall progress"],
+  "Tests effectués": ["Testes realizados", "Tests taken"],
+  "Dernière activité": ["Última atividade", "Last activity"],
+  "DÉTAIL PAR CHAPITRE": ["DETALHE POR CAPÍTULO", "DETAILS BY CHAPTER"],
+  "Réinitialiser ma progression": ["Reiniciar o meu progresso", "Reset my progress"],
+  "Dates historiques": ["Datas históricas", "Historical dates"],
+  "Les principales dates de l'{c}, selon le document de formation.": ["As principais datas da {c}, segundo o documento de formação.", "The main dates of the {c}, according to the training document."],
+  "Paroles et pratiques": ["Palavras e práticas", "Words and practices"],
+  "Accès direct aux paroles et pratiques présentées dans la formation.": ["Acesso direto às palavras e práticas apresentadas na formação.", "Direct access to the words and practices presented in the course."],
+  "Ouvrir": ["Abrir", "Open"],
+  "Révision": ["Revisão", "Review"],
+  "Revoyez librement les chapitres terminés et leurs points essentiels.": ["Reveja livremente os capítulos concluídos e os seus pontos essenciais.", "Freely review the completed chapters and their key points."],
+  "Évaluation finale de {n} questions maximum.": ["Avaliação final de no máximo {n} perguntas.", "Final assessment of up to {n} questions."],
+  "Commencer l'évaluation": ["Começar a avaliação", "Start the assessment"],
+  "CHAPITRE": ["CAPÍTULO", "CHAPTER"],
+  "Points essentiels à compléter.": ["Pontos essenciais por completar.", "Key points to be completed."],
+  "Réviser le chapitre": ["Rever o capítulo", "Review the chapter"],
+  "Terminez un premier chapitre pour le retrouver ici.": ["Conclua um primeiro capítulo para o encontrar aqui.", "Complete a first chapter to find it here."],
+  "Chapitres et notions que vous avez marqués avec ☆.": ["Capítulos e noções que marcou com ☆.", "Chapters and points you marked with ☆."],
+  "Aucun favori pour le moment.": ["Ainda não há favoritos.", "No favourites yet."],
+  "Touchez ☆ sur un chapitre ou une notion « À retenir ».": ["Toque em ☆ num capítulo ou numa noção « A reter ».", "Tap ☆ on a chapter or a “Key points” item."],
+  "Exemples : commandements, profession de foi, KCC, purification, onction, dates…": ["Exemplos: mandamentos, profissão de fé, KCC, purificação, unção, datas…", "Examples: commandments, profession of faith, KCC, purification, anointing, dates…"],
+  "Aucun résultat pour « {q} ».": ["Nenhum resultado para « {q} ».", "No results for “{q}”."],
+  "résultat(s)": ["resultado(s)", "result(s)"],
+  "Rechercher": ["Pesquisar", "Search"],
+  "Ex. : commandements, onction, dates…": ["Ex.: mandamentos, unção, datas…", "E.g.: commandments, anointing, dates…"],
+  "À propos de l'application": ["Sobre a aplicação", "About the app"],
+  "JE SUIS KCCiste – FORMATION est une application destinée à accompagner les néophytes dans l'apprentissage progressif des bases doctrinales de l'{c}.": ["JE SUIS KCCiste – FORMATION é uma aplicação destinada a acompanhar os neófitos na aprendizagem progressiva das bases doutrinais da {c}.", "JE SUIS KCCiste – FORMATION is an app designed to guide neophytes step by step through the doctrinal foundations of the {c}."],
+  "Créateur de l'application": ["Criador da aplicação", "App creator"],
+  "Contact WhatsApp": ["Contacto WhatsApp", "WhatsApp contact"],
+  "Données": ["Dados", "Data"],
+  "Votre nom, votre progression et vos favoris sont enregistrés uniquement sur cet appareil. Cette version ne comporte pas de compte en ligne.": ["O seu nome, o seu progresso e os seus favoritos são guardados apenas neste aparelho. Esta versão não tem conta online.", "Your name, progress and favourites are saved on this device only. This version has no online account."],
+  "Contact": ["Contacto", "Contact"],
+  "Pour toute question sur la formation ou l'accès à l'application.": ["Para qualquer pergunta sobre a formação ou o acesso à aplicação.", "For any question about the course or access to the app."],
+  "Contacter sur WhatsApp": ["Contactar pelo WhatsApp", "Contact on WhatsApp"],
+  "Demander les informations d'accès": ["Pedir as informações de acesso", "Ask for the access details"],
+  "Langue": ["Língua", "Language"],
+  "Menu": ["Menu", "Menu"],
+  "Changer de profil": ["Mudar de perfil", "Change profile"],
+  "RÉUSSI": ["APROVADO", "PASSED"],
+  "Votre certificat sera disponible dès que vous aurez réussi l'évaluation finale (à partir de {p} %).": ["O seu certificado estará disponível assim que for aprovado na avaliação final (a partir de {p} %).", "Your certificate will be available as soon as you pass the final assessment ({p} % or more)."],
+  "Voir les QCM": ["Ver os testes", "View the quizzes"],
+  "Mon certificat": ["O meu certificado", "My certificate"],
+  "Partagez-le, enregistrez-le dans le téléphone ou en PDF.": ["Partilhe-o, guarde-o no telefone ou em PDF.", "Share it, or save it to your phone or as a PDF."],
+  "CERTIFICAT": ["CERTIFICADO", "CERTIFICATE"],
+  "DE FIN DE FORMATION": ["DE CONCLUSÃO DE FORMAÇÃO", "OF COMPLETION"],
+  "Ce certificat est fièrement décerné à": ["Este certificado é orgulhosamente atribuído a", "This certificate is proudly awarded to"],
+  "Fait le {d}": ["Emitido em {d}", "Issued on {d}"],
+  "Formateur": ["Formador", "Trainer"],
+  "Scannez pour lire le certificat": ["Digitalize para ler o certificado", "Scan to read the certificate"],
+  "PARTAGER SUR WHATSAPP": ["PARTILHAR NO WHATSAPP", "SHARE ON WHATSAPP"],
+  "PARTAGER SUR FACEBOOK": ["PARTILHAR NO FACEBOOK", "SHARE ON FACEBOOK"],
+  "ENREGISTRER DANS LE TÉLÉPHONE": ["GUARDAR NO TELEFONE", "SAVE TO PHONE"],
+  "AUTRES APPLICATIONS": ["OUTRAS APLICAÇÕES", "OTHER APPS"],
+  "ENREGISTRER EN PDF": ["GUARDAR EM PDF", "SAVE AS PDF"],
+  "« Enregistrer dans le téléphone » place l'image du certificat dans la galerie (dossier Images › KCCiste). Pour le PDF, choisissez « Enregistrer au format PDF » dans la fenêtre qui s'ouvre.": ["« Guardar no telefone » coloca a imagem do certificado na galeria (pasta Imagens › KCCiste). Para o PDF, escolha « Guardar como PDF » na janela que se abre.", "“Save to phone” puts the certificate image in your gallery (Pictures › KCCiste folder). For a PDF, choose “Save as PDF” in the window that opens."],
+  "Préparation de l'image…": ["A preparar a imagem…", "Preparing the image…"],
+  "Impossible de créer l'image. Utilisez « Enregistrer en PDF ».": ["Não foi possível criar a imagem. Use « Guardar em PDF ».", "Could not create the image. Use “Save as PDF”."],
+  "Certificat enregistré dans la galerie (Images › KCCiste)": ["Certificado guardado na galeria (Imagens › KCCiste)", "Certificate saved to the gallery (Pictures › KCCiste)"],
+  "Impossible d'enregistrer l'image dans le téléphone.": ["Não foi possível guardar a imagem no telefone.", "Could not save the image to the phone."],
+  "Application introuvable : choisissez une autre application.": ["Aplicação não encontrada: escolha outra aplicação.", "App not found: choose another app."],
+  "Il vous reste {n} chapitre(s) à terminer.": ["Faltam-lhe {n} capítulo(s) para concluir.", "You have {n} chapter(s) left to complete."],
+  "FORMATION TERMINÉE": ["FORMAÇÃO CONCLUÍDA", "COURSE COMPLETED"],
+  "Félicitations ! Vous avez terminé le parcours de formation.": ["Parabéns! Concluiu o percurso de formação.", "Congratulations! You have completed the course."],
+  "MON CERTIFICAT": ["O MEU CERTIFICADO", "MY CERTIFICATE"],
+  "REVOIR LA FORMATION": ["REVER A FORMAÇÃO", "REVIEW THE COURSE"],
+  "REFAIRE L'ÉVALUATION": ["REFAZER A AVALIAÇÃO", "RETAKE THE ASSESSMENT"],
+  "CONTACTER LE PRÉDICATEUR": ["CONTACTAR O PREGADOR", "CONTACT THE PREACHER"],
+  "Test": ["Teste", "Test"],
+  "Certificat": ["Certificado", "Certificate"],
+  "Formation continuée": ["Formação continuada", "Course resumed"],
+  "Terminez d'abord le chapitre {n}": ["Conclua primeiro o capítulo {n}", "Complete chapter {n} first"],
+  "Ajouté aux favoris": ["Adicionado aos favoritos", "Added to favourites"],
+  "Retiré des favoris": ["Removido dos favoritos", "Removed from favourites"],
+  "Notion ajoutée aux favoris": ["Noção adicionada aos favoritos", "Point added to favourites"],
+  "Veuillez saisir une réponse": ["Escreva uma resposta", "Please enter an answer"],
+  "Associez chaque élément avant de valider": ["Associe cada elemento antes de validar", "Match every item before submitting"],
+  "Voulez-vous vraiment effacer toute votre progression ? Cette action est définitive.": ["Quer mesmo apagar todo o seu progresso? Esta ação é definitiva.", "Do you really want to erase all your progress? This cannot be undone."],
+  "Effacer": ["Apagar", "Erase"],
+  "Progression réinitialisée": ["Progresso reiniciado", "Progress reset"],
+  "Changer de profil ? Votre progression reste enregistrée sur cet appareil.": ["Mudar de perfil? O seu progresso fica guardado neste aparelho.", "Change profile? Your progress stays saved on this device."],
+  "Changer": ["Mudar", "Change"],
+  "Veuillez indiquer votre nom complet (au moins 3 caractères).": ["Indique o seu nome completo (pelo menos 3 caracteres).", "Please enter your full name (at least 3 characters)."],
+  "Veuillez indiquer votre paroisse.": ["Indique a sua paróquia.", "Please enter your parish."],
+  "Veuillez saisir le code d'accès.": ["Escreva o código de acesso.", "Please enter the access code."],
+  "Code d'accès incorrect. Vérifiez l'orthographe ou contactez le Prédicateur sur WhatsApp.": ["Código de acesso incorreto. Verifique a ortografia ou contacte o Pregador pelo WhatsApp.", "Incorrect access code. Check the spelling or contact the Preacher on WhatsApp."],
+  "Demander le code sur WhatsApp": ["Pedir o código pelo WhatsApp", "Ask for the code on WhatsApp"],
+  "Accueil": ["Início", "Home"],
+  "Cours": ["Cursos", "Lessons"],
+  "Formation": ["Formação", "Course"],
+  "Progression": ["Progresso", "Progress"],
+  "Commandements": ["Mandamentos", "Commandments"],
+  "Profession de foi": ["Profissão de fé", "Profession of faith"],
+  "Sacrements": ["Sacramentos", "Sacraments"],
+  "À propos": ["Sobre", "About"],
+  "Recherche": ["Pesquisa", "Search"],
+  "Formation terminée": ["Formação concluída", "Course completed"],
+  "Lire les chapitres de la formation": ["Ler os capítulos da formação", "Read the course chapters"],
+  "Tester vos connaissances": ["Testar os seus conhecimentos", "Test your knowledge"],
+  "Voir votre évolution": ["Ver a sua evolução", "See your progress"],
+  "Découvrir les principales dates de l'Église": ["Descobrir as principais datas da Igreja", "Discover the Church's key dates"],
+  "Accéder aux contenus correspondants": ["Aceder aos conteúdos correspondentes", "Open the related content"],
+  "Réviser les notions importantes": ["Rever as noções importantes", "Review the key ideas"],
+  "Retrouver vos notions marquées": ["Encontrar as noções que marcou", "Find the points you marked"],
+  "Contacter le Prédicateur": ["Contactar o Pregador", "Contact the Preacher"],
+  /* Textes de CONFIG */
+  "Niveau 1": ["Nível 1", "Level 1"],
+  "qui a suivi avec succès la formation doctrinale des néophytes « Je suis KCCiste » de l'Église Bon Nouveau Message (KCC) et réussi l'évaluation finale.": ["que concluiu com êxito a formação doutrinal dos neófitos « Je suis KCCiste » da Igreja Bon Nouveau Message (KCC) e foi aprovado(a) na avaliação final.", "who has successfully completed the « Je suis KCCiste » doctrinal training for neophytes of the Église Bon Nouveau Message (KCC) and passed the final assessment."],
+  "Bonjour Prédicateur Reagan MBUMBA, je souhaite obtenir l'accès à l'application JE SUIS KCCiste – FORMATION.": ["Olá Pregador Reagan MBUMBA, gostaria de obter o acesso à aplicação JE SUIS KCCiste – FORMATION.", "Hello Preacher Reagan MBUMBA, I would like to get access to the JE SUIS KCCiste – FORMATION app."],
+  "Bonjour Prédicateur Reagan MBUMBA, je suis utilisateur de l'application JE SUIS KCCiste – FORMATION et je souhaite obtenir des informations.": ["Olá Pregador Reagan MBUMBA, sou utilizador da aplicação JE SUIS KCCiste – FORMATION e gostaria de obter informações.", "Hello Preacher Reagan MBUMBA, I use the JE SUIS KCCiste – FORMATION app and would like some information."],
+  "Prédicateur Reagan MBUMBA": ["Pregador Reagan MBUMBA", "Preacher Reagan MBUMBA"],
+  "Église Bon Nouveau Message (KCC)": ["Igreja Bon Nouveau Message (KCC)", "Église Bon Nouveau Message (KCC)"]
+};
+
+function t(fr, vars) {
+  let s = fr;
+  if (LANG !== "fr") { const tr = STR_PT_EN[fr]; if (tr) s = tr[LANG === "pt" ? 0 : 1]; }
+  if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+  return s;
+}
+
+/* Contenu de la formation dans la langue choisie */
+let CHAPTERS, DATES, timelineHTML;
+function setLang(l, silent) {
+  LANG = LANGS[l] ? l : "fr";
+  try { localStorage.setItem("kcc_lang", LANG); } catch (e) { }
+  document.documentElement.lang = LANG;
+  ({ CHAPTERS, DATES, timelineHTML } = CONTENT[LANG]());
+  SEARCH_INDEX = null;
+  if (!silent) render();
+}
+function langSwitch(cls) {
+  return `<div class="lang-switch ${cls || ""}" role="group" aria-label="Langue / Língua / Language">${Object.keys(LANGS).map(l =>
+    `<button type="button" data-action="lang" data-l="${l}" aria-pressed="${l === LANG}">${{ fr: "Français", pt: "Português", en: "English" }[l]}</button>`).join("")}</div>`;
+}
+/* Libellé d'un favori dans la langue choisie */
+function favLabel(f) {
+  const c = getChapter(f.chapterId);
+  if (!c) return f.label;
+  if (f.type === "chapter") return c.title;
+  const i = Number(String(f.key).split(":")[2]);
+  return (c.keyPoints && c.keyPoints[i]) || f.label;
+}
 
 /* Construit automatiquement le lien WhatsApp (iPhone, Android, navigateur). */
 function waLink(message) {
@@ -546,6 +829,11 @@ function logoSVG(size) {
    Bon Nouveau Message (KCC) – en français » (Matière des néophytes, 2023).
    Seules les coquilles typographiques évidentes du PDF ont été corrigées
    (ex. « { » → « à », « c'st » → « c'est », « me péchés » → « mes péchés »). */
+/* Contenu par langue : chaque fonction renvoie { CHAPTERS, DATES, timelineHTML }.
+   Les versions PT et EN sont des traductions du texte français (à faire relire). */
+const CONTENT = {
+  /* ===== FR ===== */
+  fr: () => {
 const DOC = "Les éléments doctrinaux et de l'enseignement de l'Église Bon Nouveau Message (KCC) – en français";
 const src = (pages) => `${DOC}, ${pages}.`;
 
@@ -1082,6 +1370,1090 @@ const CHAPTERS = [
   }
 ];
 
+return { CHAPTERS, DATES, timelineHTML };
+  },
+  /* ===== PT ===== */
+  pt: () => {
+const DOC = "Os elementos doutrinais e do ensino da Église Bon Nouveau Message (KCC) – em francês (tradução não oficial)";
+const src = (pages) => `${DOC}, ${pages}.`;
+
+const TEN = [
+  "Sou eu o Eterno, que sou o vosso Deus; não terás outro deus além de mim;",
+  "Não farás para ti imagens esculpidas, não te prostrarás diante delas e não as servirás;",
+  "Não invocarás o Nome do Eterno Teu Deus em vão ou em apoio da mentira;",
+  "Lembra-te do dia do sábado e santifica-o;",
+  "Honra teu pai e tua mãe, para que vivas longamente sobre a terra;",
+  "Não matarás;",
+  "Não cometerás adultério;",
+  "Não roubarás;",
+  "Não mentirás;",
+  "Não cobiçarás nem o homem, nem a mulher, nem coisa alguma pertencente ao teu próximo."
+];
+const SEVEN = [
+  "Não beber bebidas inebriantes nem fumar;",
+  "Não consultar os feiticeiros, os adivinhos nem os mortos;",
+  "Participar no culto do sábado e dos dias santos;",
+  "Participar na festa da Colheita e na dos Dons Pacíficos anuais;",
+  "Reconhecer que o casamento é uma união sagrada a salvaguardar;",
+  "Permanecer santo;",
+  "Amar a Igreja, protegê-la e sustentá-la."
+];
+const FAITH = [
+  "Creio no Eterno Deus de quem toda a vida dimana. Ele é Um, Senhor dos senhores, Criador do céu, da terra e de tudo o que neles se encontra;",
+  "Creio na salvação que, pela sua graça, pela sua misericórdia e em seu Nome, o Eterno Deus ofereceu a toda a humanidade pela sua Aliança e pela sua Lei;",
+  "Creio na Santa Palavra de Deus revelada aos seus profetas para a salvação da humanidade;",
+  "Creio na imortalidade da alma e na vida eterna;",
+  "Creio na remissão dos pecados pelo Eterno, pela execução da sua Lei e em seu Nome;",
+  "Creio no juízo divino, na recompensa dos justos e no castigo eterno dos incrédulos;",
+  "Creio que O Ungido de Deus DIZOLELE MPUNGU WAFIDUSUA Isaac, é Profeta vindo do Eterno Deus;",
+  "Creio que a Église Bon Nouveau Message (KCC) vem de Deus, que ela é una, Santa e Profética."
+];
+const FIVE = [
+  "Revelar à humanidade o único verdadeiro Deus, o Eterno;",
+  "Converter as almas perdidas ao Eterno Deus;",
+  "Levar os homens a obedecer à aliança do Eterno Deus, a praticar o direito e a virtude;",
+  "Preservar os adeptos contra as falsas doutrinas;",
+  "Ensinar os fiéis a viver no temor do Eterno Deus a fim de merecer o reino dos céus."
+];
+const olist = (arr) => `<ol class="doc-list">${arr.map(t => `<li>${t}</li>`).join("")}</ol>`;
+
+/* Textos litúrgicos (tradução literal) */
+const PRAYER_FIRST_PURIF = `<div class="prayer">
+  <div class="pr-mark">Início da confissão</div>
+  <p>Oh! Eterno, o Único Verdadeiro Deus, Criador do Universo e de tudo o que nele se encontra</p>
+  <p>Pelo Teu Santo Nome, ajoelho-me diante de Ti para confessar os meus pecados anteriormente cometidos, a fim de obter de Ti o perdão para a minha santificação.</p>
+  <p>Reconheço que no meu percurso de vida, eu ignorava o Teu Santo Nome e a Tua Lei, alicerce da salvação da minha alma.</p>
+  <p>Nessa ignorância, cometi muitos pecados que me tornaram impuro e afastado de Ti.</p>
+  <div class="pr-mark">Fim da confissão</div>
+  <p>Pelo Teu Santo Nome, peço-Te, Oh Eterno Deus, que me perdoes de todas as minhas faltas anteriormente cometidas.</p>
+  <p><strong>Assim seja pelo Teu Santo Nome.</strong></p></div>`;
+const PRAYER_PURIF = `<div class="prayer">
+  <div class="pr-mark">Início da confissão</div>
+  <p>Pelo Teu Santo Nome, ajoelho-me diante de Ti para confessar os meus pecados, a fim de que eu seja perdoado.</p>
+  <div class="pr-mark">Fim da confissão</div>
+  <p>Pelo Teu Santo Nome, peço-Te, oh Eterno, que me perdoes de todas as minhas faltas.</p>
+  <p><strong>Assim seja pelo Teu Santo Nome.</strong></p></div>`;
+const PRAYER_ONCTION = `<div class="prayer">
+  <p>O Eterno é o nosso Deus,<br>O Eterno é Um,<br>Amarei e servirei o Eterno meu Deus</p>
+  <p>– De todo o meu coração,<br>– De toda a minha alma e<br>– De toda a minha força</p>
+  <p><strong>Assim seja em nome do Eterno.</strong></p></div>`;
+
+/* [DATES] Cronologia — texto do documento */
+const DATES = [
+  { date: "01 de março de 1930",  title: "Nascimento do Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac" },
+  { date: "08 de março de 1955",  title: "Nascimento da Église Bon Nouveau Message no Camp Teli em Forakam (Seke Banza)" },
+  { date: "12 de abril de 1958", title: "Aparição de KCC" },
+  { date: "30 de abril de 1980", title: "Reconhecimento Jurídico" },
+  { date: "15 de abril de 2003", title: "Oráculo do Eterno ao Seu Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac dizendo: « Quaisquer que sejam os milagres que realize, um homem não pode ser Deus »." },
+  { date: "02 de agosto de 2005",  title: "Mudança da denominação da Église Universelle de Douze Apôtres para Église Bon Nouveau Message (KCC)",
+    note: "Esta mudança implicará também a da denominação dos órgãos e ramos no seio da Igreja:",
+    items: ["Conselho dos Doze para Conselho Paroquial (órgão espiritual)", "AMDAESS para AFEBNM (ramo das mamãs)", "JEUDA para JEBNM (ramo da juventude)", "CIRAPRO para CIRPRO (agrupamento local de entidades)", "UVA para UVPRO (coral central da Igreja)"] },
+  { date: "20 de março de 2018",  title: "Instituição da festa da Santa Convocação ou festa da promulgação da Lei pelo Próprio Eterno." }
+];
+function timelineHTML() {
+  return `<div class="timeline">${DATES.map(d => `
+    <div class="tl-item card">
+      <div class="tl-date">${d.date}</div>
+      <div class="tl-title">${d.title}</div>
+      ${d.note ? `<p class="small muted" style="margin-top:8px">${d.note}</p><ul class="small">${d.items.map(i => `<li>${i}</li>`).join("")}</ul>` : ""}
+    </div>`).join("")}</div>`;
+}
+
+const STUDY_TIPS = `<ul>
+  <li>Leia o texto devagar, elemento por elemento, pela ordem.</li>
+  <li>Memorize primeiro o número e o início de cada frase, depois a frase completa.</li>
+  <li>Releia regularmente a rubrica « A reter ».</li>
+  <li>Faça o teste: as explicações ajudam-no a corrigir os seus erros.</li>
+</ul>`;
+
+const CHAPTERS = [
+  /* ---------------- CAPÍTULO 1 ---------------- */
+  {
+    id: 1, icon: "🕊️", title: "Introdução ao KCCismo",
+    summary: "Visão geral do ensino doutrinal da Igreja",
+    lesson: `<p>O documento de formação intitula-se <strong>« Os elementos doutrinais e do ensino da Église Bon Nouveau Message (KCC) »</strong>. Apresenta:</p>
+      <ul><li>os Dez Mandamentos do Eterno Deus;</li><li>os Sete Mandamentos da Igreja;</li><li>a Profissão de Fé;</li><li>os cinco objetivos do ensino religioso da Igreja;</li><li>os Sacramentos da Igreja (palavras de purificação e de unção);</li><li>a especificidade doutrinal;</li><li>as datas históricas da Igreja.</li></ul>
+      <p>Segundo este documento, a doutrina da Église Bon Nouveau Message (KCC) é o « KCCismo », e a pessoa que crê no KCCismo é chamada « Kccista ».</p>
+      <p>O Monoteísmo radical é a linha mestra do KCCismo.</p>`,
+    keyPoints: [
+      "O nome da Igreja: Église Bon Nouveau Message (KCC).",
+      "A doutrina da Église Bon Nouveau Message (KCC) é o « KCCismo ».",
+      "A pessoa que crê no KCCismo é chamada « Kccista ».",
+      "O Monoteísmo radical é a linha mestra do KCCismo.",
+      "Segundo a doutrina KCCismo, a fonte do ensino da Igreja é a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac."
+    ],
+    understand: `<p>Este primeiro capítulo dá uma visão geral. Cada elemento é depois retomado em pormenor nos capítulos seguintes. Retenha primeiro três palavras: <strong>KCC</strong> (o nome da Igreja), <strong>KCCismo</strong> (a sua doutrina) e <strong>Kccista</strong> (a pessoa que crê no KCCismo).</p>`,
+    terms: [
+      { term: "Neófito", def: "Pessoa que entrou recentemente numa comunidade religiosa e que começa a sua formação. (Sentido corrente)" },
+      { term: "KCCismo", def: "A doutrina da Église Bon Nouveau Message (KCC)." },
+      { term: "Kccista", def: "A pessoa que crê no KCCismo." },
+      { term: "KCC", def: "« Nkanda Wambote Wampa »: « Bon Nouveau Message » (Boa Nova Mensagem) (ver capítulo 12)." }
+    ],
+    source: src("p. 1 a 4 (visão geral)"),
+    questions: [
+      { type: "mcq", q: "Qual é o nome da Igreja?", options: ["Église Universelle de Douze Apôtres", "Église Bon Nouveau Message (KCC)", "Église de la Sainte Convocation", "Église du Camp Teli"], answer: 1, explain: "A Igreja chama-se Église Bon Nouveau Message (KCC)." },
+      { type: "tf", q: "A doutrina da Église Bon Nouveau Message (KCC) chama-se KCCismo.", answer: true, explain: "Correto: a doutrina da Igreja é o « KCCismo »." },
+      { type: "mcq", q: "Como se chama a pessoa que crê no KCCismo?", options: ["Um neófito", "Um Kccista", "Um profeta", "Um apóstolo"], answer: 1, explain: "A pessoa que crê no KCCismo é chamada « Kccista »." },
+      { type: "mcq", q: "Qual é a linha mestra do KCCismo?", options: ["O Monoteísmo radical", "A festa da Colheita", "O reconhecimento jurídico", "O Conselho Paroquial"], answer: 0, explain: "O Monoteísmo radical é a linha mestra do KCCismo." },
+      { type: "tf", q: "Segundo a doutrina KCCismo, a fonte do ensino da Igreja é a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac.", answer: true, explain: "Correto: a fonte do ensino da Igreja é a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 2 ---------------- */
+  {
+    id: 2, icon: "📜", title: "Os Dez Mandamentos do Eterno Deus",
+    summary: "Os dez mandamentos tal como enunciados no documento",
+    lesson: `<p>O documento de formação enuncia assim os Dez Mandamentos do Eterno Deus:</p>${olist(TEN)}`,
+    keyPoints: [
+      "Os mandamentos do Eterno Deus são dez.",
+      "1.º: « Sou eu o Eterno, que sou o vosso Deus; não terás outro deus além de mim. »",
+      "4.º: « Lembra-te do dia do sábado e santifica-o. »",
+      "5.º: « Honra teu pai e tua mãe, para que vivas longamente sobre a terra. »",
+      "6.º a 9.º: « Não matarás; Não cometerás adultério; Não roubarás; Não mentirás. »",
+      "10.º: « Não cobiçarás nem o homem, nem a mulher, nem coisa alguma pertencente ao teu próximo. »"
+    ],
+    understand: `<p>Cada mandamento dirige-se diretamente ao fiel (« tu »). Para os aprender bem:</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Imagens esculpidas", def: "Estátuas ou representações esculpidas. (Sentido corrente)" },
+      { term: "Invocar em vão", def: "Pronunciar um nome sem razão válida, inutilmente. (Sentido corrente)" },
+      { term: "Adultério", def: "Relação de uma pessoa casada com outra pessoa que não o seu cônjuge. (Sentido corrente)" },
+      { term: "Cobiçar", def: "Desejar com inveja o que pertence a outro. (Sentido corrente)" }
+    ],
+    source: src("p. 1"),
+    questions: [
+      { type: "mcq", q: "Quantos mandamentos do Eterno Deus apresenta o documento?", options: ["Sete", "Oito", "Dez", "Doze"], answer: 2, explain: "O documento apresenta os Dez Mandamentos do Eterno Deus." },
+      { type: "mcq", q: "Qual é o primeiro mandamento?", options: ["Não matarás", "Sou eu o Eterno, que sou o vosso Deus; não terás outro deus além de mim", "Honra teu pai e tua mãe", "Lembra-te do dia do sábado e santifica-o"], answer: 1, explain: "O 1.º mandamento: « Sou eu o Eterno, que sou o vosso Deus; não terás outro deus além de mim. »" },
+      { type: "tf", q: "O 4.º mandamento diz: « Lembra-te do dia do sábado e santifica-o. »", answer: true, explain: "Correto: é o texto do 4.º mandamento." },
+      { type: "short", q: "Complete o 5.º mandamento: « Honra teu pai e tua mãe, para que vivas longamente … »", accept: ["sobre a terra", "na terra", "a terra"], display: "sobre a terra", explain: "« Honra teu pai e tua mãe, para que vivas longamente sobre a terra. »" },
+      { type: "match", q: "Associe cada número ao seu mandamento.", pairs: [["6.º mandamento", "Não matarás"], ["7.º mandamento", "Não cometerás adultério"], ["8.º mandamento", "Não roubarás"], ["9.º mandamento", "Não mentirás"]], explain: "Os mandamentos 6 a 9: não matar, não cometer adultério, não roubar, não mentir." },
+      { type: "tf", q: "O 3.º mandamento diz: « Não invocarás o Nome do Eterno Teu Deus em vão ou em apoio da mentira. »", answer: true, explain: "É de facto o texto do 3.º mandamento." },
+      { type: "mcq", q: "Que diz o 2.º mandamento a respeito das imagens esculpidas?", options: ["Que é preciso colocá-las nas casas", "Não as farás para ti, não te prostrarás diante delas e não as servirás", "Que são permitidas no dia do sábado", "O 2.º mandamento não fala de imagens"], answer: 1, explain: "« Não farás para ti imagens esculpidas, não te prostrarás diante delas e não as servirás. »" },
+      { type: "tf", q: "O 10.º mandamento fala unicamente dos bens materiais do próximo.", answer: false, explain: "Falso: menciona « nem o homem, nem a mulher, nem coisa alguma pertencente ao teu próximo »." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 3 ---------------- */
+  {
+    id: 3, icon: "⛪", title: "Os Sete Mandamentos da Igreja",
+    summary: "As sete regras de vida dadas pela Igreja",
+    lesson: `<p>O documento de formação enuncia assim os Sete Mandamentos da Igreja:</p>${olist(SEVEN)}`,
+    keyPoints: [
+      "Os mandamentos da Igreja são sete.",
+      "1.º: « Não beber bebidas inebriantes nem fumar. »",
+      "2.º: « Não consultar os feiticeiros, os adivinhos nem os mortos. »",
+      "3.º e 4.º: participar no culto do sábado e dos dias santos, bem como na festa da Colheita e na dos Dons Pacíficos anuais.",
+      "5.º: « Reconhecer que o casamento é uma união sagrada a salvaguardar. »",
+      "6.º e 7.º: « Permanecer santo »; « Amar a Igreja, protegê-la e sustentá-la. »"
+    ],
+    understand: `<p>Estes sete mandamentos dizem respeito à vida quotidiana do fiel e à sua participação na vida da Igreja. Para os aprender:</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Bebidas inebriantes", def: "Bebidas que embriagam, como as bebidas alcoólicas. (Sentido corrente)" },
+      { term: "Feiticeiro", def: "Pessoa que pratica o culto dos feitiços (fetiches). (Sentido corrente)" },
+      { term: "Adivinho", def: "Pessoa que pretende conhecer o futuro ou as coisas ocultas. (Sentido corrente)" }
+    ],
+    source: src("p. 1"),
+    questions: [
+      { type: "mcq", q: "Quantos mandamentos da Igreja apresenta o documento?", options: ["Cinco", "Sete", "Dez", "Oito"], answer: 1, explain: "O documento apresenta os Sete Mandamentos da Igreja." },
+      { type: "tf", q: "O 1.º mandamento da Igreja: « Não beber bebidas inebriantes nem fumar. »", answer: true, explain: "Correto." },
+      { type: "mcq", q: "Segundo o 2.º mandamento da Igreja, o fiel não deve consultar:", options: ["Os anciãos da Igreja", "Os feiticeiros, os adivinhos nem os mortos", "Os médicos", "Os pregadores"], answer: 1, explain: "« Não consultar os feiticeiros, os adivinhos nem os mortos. »" },
+      { type: "short", q: "Complete o 4.º mandamento: « Participar na festa da … e na dos Dons Pacíficos anuais. »", accept: ["colheita", "a colheita"], display: "Colheita", explain: "« Participar na festa da Colheita e na dos Dons Pacíficos anuais. »" },
+      { type: "tf", q: "O 5.º mandamento da Igreja pede que se reconheça que o casamento é uma união sagrada a salvaguardar.", answer: true, explain: "Correto: « Reconhecer que o casamento é uma união sagrada a salvaguardar. »" },
+      { type: "match", q: "Associe cada número ao seu mandamento da Igreja.", pairs: [["1.º", "Não beber bebidas inebriantes nem fumar"], ["3.º", "Participar no culto do sábado e dos dias santos"], ["6.º", "Permanecer santo"], ["7.º", "Amar a Igreja, protegê-la e sustentá-la"]], explain: "Releia a lista completa na lição para memorizar bem a ordem." },
+      { type: "mcq", q: "Que pede o 7.º mandamento da Igreja?", options: ["Permanecer santo", "Amar a Igreja, protegê-la e sustentá-la", "Participar na festa da Colheita", "Não fumar"], answer: 1, explain: "O 7.º mandamento: « Amar a Igreja, protegê-la e sustentá-la. »" }
+    ]
+  },
+  /* ---------------- CAPÍTULO 4 ---------------- */
+  {
+    id: 4, icon: "🗣️", title: "A Profissão de Fé",
+    summary: "Os oito elementos da Profissão de Fé",
+    lesson: `<p>O documento apresenta assim a Profissão de Fé, em oito elementos:</p>${olist(FAITH)}`,
+    keyPoints: [
+      "A Profissão de Fé comporta oito elementos; cada um começa por « Creio ».",
+      "1.º: o Eterno Deus, de quem toda a vida dimana, é Um, Senhor dos senhores, Criador do céu, da terra e de tudo o que neles se encontra.",
+      "3.º e 4.º: a Santa Palavra de Deus revelada aos seus profetas; a imortalidade da alma e a vida eterna.",
+      "6.º: o juízo divino, a recompensa dos justos e o castigo eterno dos incrédulos.",
+      "7.º: « O Ungido de Deus DIZOLELE MPUNGU WAFIDUSUA Isaac, é Profeta vindo do Eterno Deus. »",
+      "8.º: a Église Bon Nouveau Message (KCC) vem de Deus; ela é una, Santa e Profética."
+    ],
+    understand: `<p>A Profissão de Fé resume aquilo em que o Kccista crê. Cada elemento começa por « Creio ». Para a reter, identifique o tema de cada elemento:</p>
+      <ol><li>o Eterno Deus;</li><li>a salvação;</li><li>a Santa Palavra de Deus;</li><li>a imortalidade da alma e a vida eterna;</li><li>a remissão dos pecados;</li><li>o juízo divino;</li><li>o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac;</li><li>a Église Bon Nouveau Message (KCC).</li></ol>`,
+    terms: [
+      { term: "Profissão de fé", def: "Declaração daquilo em que se crê. (Sentido corrente)" },
+      { term: "Remissão dos pecados", def: "Perdão dos pecados. (Sentido corrente)" },
+      { term: "Incrédulos", def: "Pessoas que não creem. (Sentido corrente)" }
+    ],
+    source: src("p. 1-2"),
+    questions: [
+      { type: "mcq", q: "Quantos elementos comporta a Profissão de Fé?", options: ["Cinco", "Sete", "Oito", "Dez"], answer: 2, explain: "A Profissão de Fé comporta oito elementos." },
+      { type: "short", q: "Complete: « Creio no Eterno Deus de quem toda a … dimana. »", accept: ["vida", "a vida"], display: "vida", explain: "« Creio no Eterno Deus de quem toda a vida dimana. »" },
+      { type: "tf", q: "O 4.º elemento diz: « Creio na imortalidade da alma e na vida eterna. »", answer: true, explain: "Correto." },
+      { type: "mcq", q: "Que diz o 7.º elemento da Profissão de Fé?", options: ["Creio no juízo divino", "Creio que O Ungido de Deus DIZOLELE MPUNGU WAFIDUSUA Isaac, é Profeta vindo do Eterno Deus", "Creio na vida eterna", "Creio na remissão dos pecados"], answer: 1, explain: "7.º elemento: « Creio que O Ungido de Deus DIZOLELE MPUNGU WAFIDUSUA Isaac, é Profeta vindo do Eterno Deus. »" },
+      { type: "mcq", q: "Segundo o 8.º elemento, a Église Bon Nouveau Message (KCC) é:", options: ["una, Santa e Profética", "universal e apostólica", "antiga e tradicional", "o documento não o especifica"], answer: 0, explain: "« …ela é una, Santa e Profética. »" },
+      { type: "match", q: "Associe cada elemento ao seu tema.", pairs: [["2.º elemento", "A salvação oferecida pela Aliança e pela Lei"], ["3.º elemento", "A Santa Palavra de Deus revelada aos seus profetas"], ["5.º elemento", "A remissão dos pecados"], ["6.º elemento", "O juízo divino"]], explain: "Releia os oito elementos pela ordem." },
+      { type: "tf", q: "O 6.º elemento fala do juízo divino, da recompensa dos justos e do castigo eterno dos incrédulos.", answer: true, explain: "Correto." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 5 ---------------- */
+  {
+    id: 5, icon: "🎯", title: "Os cinco objetivos do ensino religioso da Igreja",
+    summary: "Porque é que a Igreja ensina",
+    lesson: `<p>O documento de formação enuncia assim os cinco objetivos do ensino religioso da Igreja:</p>${olist(FIVE)}`,
+    keyPoints: [
+      "O ensino religioso da Igreja persegue cinco objetivos.",
+      "1.º: « Revelar à humanidade o único verdadeiro Deus, o Eterno. »",
+      "2.º: « Converter as almas perdidas ao Eterno Deus. »",
+      "3.º: « Levar os homens a obedecer à aliança do Eterno Deus, a praticar o direito e a virtude. »",
+      "4.º: « Preservar os adeptos contra as falsas doutrinas. »",
+      "5.º: « Ensinar os fiéis a viver no temor do Eterno Deus a fim de merecer o reino dos céus. »"
+    ],
+    understand: `<p>Estes cinco objetivos explicam a finalidade do ensino que recebe durante esta formação.</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Converter", def: "Levar alguém a adotar uma fé. (Sentido corrente)" },
+      { term: "Adeptos", def: "Pessoas que seguem um ensino ou uma religião. (Sentido corrente)" }
+    ],
+    source: src("p. 2"),
+    questions: [
+      { type: "mcq", q: "Quantos objetivos persegue o ensino religioso da Igreja?", options: ["Três", "Cinco", "Sete", "Dez"], answer: 1, explain: "O documento enuncia cinco objetivos." },
+      { type: "mcq", q: "Qual é o primeiro objetivo?", options: ["Preservar os adeptos contra as falsas doutrinas", "Revelar à humanidade o único verdadeiro Deus, o Eterno", "Converter as almas perdidas", "Construir locais de culto"], answer: 1, explain: "1.º objetivo: « Revelar à humanidade o único verdadeiro Deus, o Eterno. »" },
+      { type: "tf", q: "Um dos objetivos é preservar os adeptos contra as falsas doutrinas.", answer: true, explain: "É o 4.º objetivo." },
+      { type: "short", q: "Complete o 2.º objetivo: « Converter as almas perdidas ao … Deus. »", accept: ["eterno", "o eterno"], display: "Eterno", explain: "« Converter as almas perdidas ao Eterno Deus. »" },
+      { type: "match", q: "Associe cada objetivo ao seu número.", pairs: [["3.º objetivo", "Levar os homens a obedecer à aliança do Eterno Deus, a praticar o direito e a virtude"], ["4.º objetivo", "Preservar os adeptos contra as falsas doutrinas"], ["5.º objetivo", "Ensinar os fiéis a viver no temor do Eterno Deus"]], explain: "Releia os cinco objetivos pela ordem." },
+      { type: "tf", q: "O 5.º objetivo fala de viver no temor do Eterno Deus a fim de merecer o reino dos céus.", answer: true, explain: "Correto." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 6 ---------------- */
+  {
+    id: 6, icon: "💧", title: "Os Sacramentos da Igreja",
+    summary: "As palavras de purificação e de unção",
+    lesson: `<p>Sob o título <strong>« Os Sacramentos da Igreja »</strong>, o documento apresenta três palavras:</p>
+      ${olist(["A Palavra da Primeira Purificação", "A Palavra da Purificação", "A Palavra para a 1.ª Unção"])}
+      <p>O texto completo destas palavras é apresentado no capítulo 7 (purificação) e no capítulo 8 (unção).</p>
+      ${pend("Explicação detalhada dos sacramentos (não fornecida no documento)")}`,
+    keyPoints: [
+      "Sob « Os Sacramentos da Igreja », o documento apresenta três palavras.",
+      "A Palavra da Primeira Purificação e a Palavra da Purificação são dois textos distintos.",
+      "A terceira é a Palavra para a 1.ª Unção.",
+      "As palavras de purificação terminam com « Assim seja pelo Teu Santo Nome. »",
+      "A palavra de unção termina com « Assim seja em nome do Eterno. »"
+    ],
+    understand: `<p>Este capítulo dá-lhe o plano: duas palavras de purificação e uma palavra de unção. Estude depois cada texto em pormenor nos capítulos 7 e 8.</p>`,
+    terms: [
+      { term: "Purificação", def: "Ação de tornar puro. (Sentido corrente)" },
+      { term: "Unção", def: "Ação de ungir, isto é, de aplicar óleo de forma ritual. (Sentido corrente)" }
+    ],
+    source: src("p. 2-3"),
+    questions: [
+      { type: "mcq", q: "Quantas palavras apresenta o documento sob « Os Sacramentos da Igreja »?", options: ["Uma", "Duas", "Três", "Sete"], answer: 2, explain: "Três: Primeira Purificação, Purificação, 1.ª Unção." },
+      { type: "tf", q: "O documento distingue a Palavra da Primeira Purificação e a Palavra da Purificação.", answer: true, explain: "São dois textos distintos." },
+      { type: "mcq", q: "Qual destas palavras figura sob « Os Sacramentos da Igreja »?", options: ["A Palavra para a 1.ª Unção", "A palavra da festa da Colheita", "A palavra do Conselho Paroquial", "A palavra da Santa Convocação"], answer: 0, explain: "O documento apresenta a Palavra para a 1.ª Unção." },
+      { type: "short", q: "Complete o final das palavras de purificação: « Assim seja pelo Teu Santo … »", accept: ["nome"], display: "Nome", explain: "« Assim seja pelo Teu Santo Nome. »" },
+      { type: "tf", q: "A Palavra para a 1.ª Unção termina com « Assim seja em nome do Eterno. »", answer: true, explain: "Correto." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 7 ---------------- */
+  {
+    id: 7, icon: "🌿", title: "A Primeira Purificação",
+    summary: "Palavra da Primeira Purificação e Palavra da Purificação",
+    lesson: `<h3 class="sub-h">Palavra da Primeira Purificação</h3>${PRAYER_FIRST_PURIF}
+      <h3 class="sub-h">Palavra da Purificação</h3>${PRAYER_PURIF}`,
+    keyPoints: [
+      "Cada palavra compreende uma confissão, colocada entre « Início da confissão » e « Fim da confissão », seguida de um pedido de perdão.",
+      "A Primeira Purificação dirige-se ao Eterno, o Único Verdadeiro Deus, Criador do Universo.",
+      "Nela confessam-se os pecados anteriormente cometidos, a fim de obter o perdão para a sua santificação.",
+      "Nela reconhece-se ter ignorado o Santo Nome do Eterno e a Sua Lei, « alicerce da salvação da minha alma ».",
+      "A Palavra da Purificação é mais curta: confessar os seus pecados a fim de ser perdoado.",
+      "Ambas terminam com « Assim seja pelo Teu Santo Nome. »"
+    ],
+    understand: `<p>As duas palavras têm a mesma estrutura:</p>
+      <ol><li><strong>A confissão</strong>: a pessoa ajoelha-se diante do Eterno, pelo Seu Santo Nome, e confessa os seus pecados.</li>
+      <li><strong>O pedido de perdão</strong>: pede ao Eterno que lhe perdoe as suas faltas.</li>
+      <li><strong>A conclusão</strong>: « Assim seja pelo Teu Santo Nome. »</li></ol>
+      <p>A Palavra da Primeira Purificação é mais desenvolvida: evoca os pecados cometidos na ignorância do Santo Nome e da Lei do Eterno.</p>
+      ${pend("Momento e desenrolar de cada purificação")}`,
+    terms: [
+      { term: "Confissão", def: "Reconhecimento das próprias faltas. (Sentido corrente)" },
+      { term: "Confessar", def: "Declarar os seus pecados. (Sentido corrente)" },
+      { term: "Santificação", def: "Ação de tornar santo. (Sentido corrente)" },
+      { term: "Faltas", def: "Erros, falhas no cumprimento de um dever. (Sentido corrente)" }
+    ],
+    source: src("p. 2-3"),
+    questions: [
+      { type: "mcq", q: "Na Palavra da Primeira Purificação, a pessoa ajoelha-se para:", options: ["Cantar um cântico", "Confessar os seus pecados anteriormente cometidos a fim de obter o perdão", "Receber a unção", "Recitar os mandamentos"], answer: 1, explain: "« …para confessar os meus pecados anteriormente cometidos, a fim de obter de Ti o perdão para a minha santificação. »" },
+      { type: "tf", q: "Na confissão da Primeira Purificação, a pessoa reconhece que ignorava o Santo Nome do Eterno e a Sua Lei.", answer: true, explain: "« …eu ignorava o Teu Santo Nome e a Tua Lei, alicerce da salvação da minha alma. »" },
+      { type: "short", q: "Complete: « …o Teu Santo Nome e a Tua Lei, alicerce da … da minha alma. »", accept: ["salvacao"], display: "salvação", explain: "« …a Tua Lei, alicerce da salvação da minha alma. »" },
+      { type: "tf", q: "A Palavra da Purificação é mais longa do que a da Primeira Purificação.", answer: false, explain: "Falso: a Palavra da Purificação é a mais curta." },
+      { type: "mcq", q: "Entre que menções se encontra a confissão?", options: ["« Início da confissão » e « Fim da confissão »", "« Ámen » e « Aleluia »", "« Primeiro » e « Último »", "Não há confissão"], answer: 0, explain: "A confissão está colocada entre « Início da confissão » e « Fim da confissão »." },
+      { type: "mcq", q: "Como terminam as palavras de purificação?", options: ["Assim seja em nome do Eterno", "Assim seja pelo Teu Santo Nome", "Ámen", "Glória a Deus"], answer: 1, explain: "« Assim seja pelo Teu Santo Nome. »" }
+    ]
+  },
+  /* ---------------- CAPÍTULO 8 ---------------- */
+  {
+    id: 8, icon: "🕯️", title: "A Palavra da Primeira Unção",
+    summary: "O texto da Palavra para a 1.ª Unção",
+    lesson: `<h3 class="sub-h">Palavra para a 1.ª Unção</h3>${PRAYER_ONCTION}`,
+    keyPoints: [
+      "« O Eterno é o nosso Deus, o Eterno é Um. »",
+      "« Amarei e servirei o Eterno meu Deus »",
+      "… de todo o meu coração, de toda a minha alma e de toda a minha força.",
+      "Conclusão: « Que assim seja em nome do Eterno. »"
+    ],
+    understand: `<p>A palavra desenrola-se em três tempos:</p>
+      <ol><li><strong>Uma proclamação</strong>: o Eterno é o nosso Deus, o Eterno é Um.</li>
+      <li><strong>Um compromisso</strong>: amar e servir o Eterno de todo o coração, de toda a alma e de toda a força.</li>
+      <li><strong>A conclusão</strong>: « Que assim seja em nome do Eterno. »</li></ol>
+      ${pend("Desenrolar da 1.ª Unção")}`,
+    terms: [
+      { term: "Unção", def: "Ação de ungir, isto é, de aplicar óleo de forma ritual. (Sentido corrente)" }
+    ],
+    source: src("p. 3"),
+    questions: [
+      { type: "short", q: "Complete: « O Eterno é o nosso Deus, o Eterno é … »", accept: ["um"], display: "Um", explain: "« O Eterno é o nosso Deus, o Eterno é Um. »" },
+      { type: "mcq", q: "Complete: « Amarei e servirei o Eterno meu Deus de todo o meu coração, de toda a minha alma e… »", options: ["de toda a minha família", "de toda a minha força", "de toda a minha voz", "de todo o meu tempo"], answer: 1, explain: "« …De toda a minha força. »" },
+      { type: "tf", q: "Nesta palavra, o fiel diz: « Amarei e servirei o Eterno meu Deus ».", answer: true, explain: "Está correto." },
+      { type: "mcq", q: "Como termina a Palavra para a 1.ª Unção?", options: ["Que assim seja pelo Teu Santo Nome", "Que assim seja em nome do Eterno", "Ámen", "Assim seja"], answer: 1, explain: "« Que assim seja em nome do Eterno. »" },
+      { type: "mcq", q: "Quantos « De todo / De toda… » tem o compromisso?", options: ["Dois", "Três", "Quatro", "Cinco"], answer: 1, explain: "Três: de todo o meu coração, de toda a minha alma, de toda a minha força." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 9 ---------------- */
+  {
+    id: 9, icon: "🧭", title: "A especificidade doutrinal",
+    summary: "Os quatro pontos que caracterizam o ensino",
+    lesson: `<p>Sob o título « Especificidade doutrinal », o documento apresenta quatro pontos:</p>
+      <ol type="a"><li><strong>O Monoteísmo radical</strong>: a linha mestra do KCCismo (capítulo 10);</li>
+      <li><strong>A fonte do ensino da Igreja</strong>: a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac (capítulo 11);</li>
+      <li><strong>KCC</strong>: os sinais proféticos e o seu significado (capítulo 12);</li>
+      <li><strong>A doutrina da Église Bon Nouveau Message (KCC)</strong>: o KCCismo; quem nele crê é Kccista (capítulo 13).</li></ol>
+      <p>Segundo o documento, as três letras KCC traduzem o sinal da profecia que diferencia a EBNM (KCC) das outras Igrejas.</p>`,
+    keyPoints: [
+      "A especificidade doutrinal compreende quatro pontos (a, b, c, d).",
+      "a) O Monoteísmo radical, linha mestra do KCCismo.",
+      "b) A fonte do ensino da Igreja: a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "c) KCC: os sinais proféticos que diferenciam a EBNM (KCC) das outras Igrejas.",
+      "d) A doutrina: o KCCismo; o crente: o Kccista."
+    ],
+    understand: `<p>Este capítulo é um plano. Memorize os quatro pontos por ordem (a, b, c, d): cada um é detalhado nos capítulos 10 a 13.</p>`,
+    terms: [
+      { term: "EBNM", def: "Église Bon Nouveau Message (sigla utilizada no documento)." },
+      { term: "Doutrina", def: "Conjunto dos ensinamentos de uma religião. (Sentido corrente)" }
+    ],
+    source: src("p. 3-4"),
+    questions: [
+      { type: "mcq", q: "Quantos pontos compreende a especificidade doutrinal?", options: ["Dois", "Três", "Quatro", "Oito"], answer: 2, explain: "Quatro pontos: a, b, c e d." },
+      { type: "match", q: "Associe cada letra ao seu ponto.", pairs: [["a)", "O Monoteísmo radical"], ["b)", "A fonte do ensino: a Bíblia e o Profeta"], ["c)", "KCC"], ["d)", "A doutrina da Igreja: o KCCismo"]], explain: "a) Monoteísmo radical, b) a Bíblia e o Profeta, c) KCC, d) KCCismo." },
+      { type: "tf", q: "Segundo o documento, as letras KCC diferenciam a EBNM (KCC) das outras Igrejas.", answer: true, explain: "« Estas três letras traduzem o sinal da profecia que diferencia a EBNM (KCC) das outras Igrejas. »" },
+      { type: "mcq", q: "O que significa a sigla EBNM?", options: ["Église Bon Nouveau Message", "Igreja da Bíblia e do Novo Mundo", "Igreja Bíblica Nacional e Missionária", "O documento não a utiliza"], answer: 0, explain: "EBNM: Église Bon Nouveau Message." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 10 ---------------- */
+  {
+    id: 10, icon: "☝️", title: "O Monoteísmo radical",
+    summary: "A linha mestra do KCCismo",
+    lesson: `<p>O documento ensina:</p>
+      <div class="prayer"><p>O Monoteísmo radical: é a linha mestra do KCCismo. O que quer dizer: « crer no Eterno, o Único verdadeiro Deus, Criador do céu, da terra e de tudo o que neles se encontra; o só e único Salvador da humanidade pela sua graça, pela sua misericórdia e em seu nome »</p><p><strong>(Isaías 43: 10-11)</strong></p></div>`,
+    keyPoints: [
+      "O Monoteísmo radical é a linha mestra do KCCismo.",
+      "Crer no Eterno, o Único verdadeiro Deus.",
+      "O Eterno é Criador do céu, da terra e de tudo o que neles se encontra.",
+      "O Eterno é o só e único Salvador da humanidade, pela sua graça, pela sua misericórdia e em seu nome.",
+      "Referência bíblica: Isaías 43: 10-11."
+    ],
+    understand: `<p>« Mono » quer dizer « um só »: o Monoteísmo é a fé num só Deus. Segundo o documento, no KCCismo esta fé é <strong>radical</strong>: o Eterno é o Único verdadeiro Deus, o Criador, e o só e único Salvador da humanidade.</p>
+      <p>Leia também Isaías 43: 10-11 na sua Bíblia.</p>`,
+    terms: [
+      { term: "Monoteísmo", def: "Crença num Deus único. (Sentido corrente)" },
+      { term: "Monoteísmo radical", def: "Linha mestra do KCCismo: crer no Eterno, o Único verdadeiro Deus, Criador, só e único Salvador da humanidade." },
+      { term: "Linha mestra", def: "Ideia principal, ponto central. (Sentido corrente)" }
+    ],
+    source: src("p. 3 — Isaías 43: 10-11"),
+    questions: [
+      { type: "mcq", q: "O que é o Monoteísmo radical para o KCCismo?", options: ["Uma festa anual", "A linha mestra do KCCismo", "Um mandamento da Igreja", "Um ramo da Igreja"], answer: 1, explain: "« O Monoteísmo radical: é a linha mestra do KCCismo. »" },
+      { type: "mcq", q: "Que referência bíblica dá o documento para o Monoteísmo radical?", options: ["Génesis 1: 1", "Isaías 43: 10-11", "Salmo 23", "Êxodo 20"], answer: 1, explain: "O documento cita Isaías 43: 10-11." },
+      { type: "tf", q: "Segundo o documento, o Eterno é o só e único Salvador da humanidade.", answer: true, explain: "« …o só e único Salvador da humanidade pela sua graça, pela sua misericórdia e em seu nome »." },
+      { type: "short", q: "Complete: « …Salvador da humanidade pela sua graça, pela sua misericórdia e em seu … »", accept: ["nome"], display: "nome", explain: "« …pela sua graça, pela sua misericórdia e em seu nome »." },
+      { type: "tf", q: "O Monoteísmo radical consiste em crer em vários deuses.", answer: false, explain: "Falso: trata-se de crer no Eterno, o Único verdadeiro Deus." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 11 ---------------- */
+  {
+    id: 11, icon: "📖", title: "A Bíblia e o Profeta, fonte do ensino",
+    summary: "A fonte do ensino da Igreja",
+    lesson: `<p>O documento ensina:</p>
+      <div class="prayer"><p>A fonte do ensino da Igreja: é a Bíblia, que é o conjunto dos livros que traduz a aliança do Eterno com o seu povo.</p></div>
+      <p>Segundo a doutrina KCCismo, a fonte do ensino da Igreja é <strong>a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac</strong>.</p>`,
+    keyPoints: [
+      "Segundo a doutrina KCCismo, a fonte do ensino da Igreja é a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "A Bíblia é o conjunto dos livros que traduz a aliança do Eterno com o seu povo."
+    ],
+    understand: `<p>Tudo o que a Igreja ensina tem como fonte a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac. O documento define a Bíblia como um <strong>conjunto de livros</strong> que exprime a <strong>aliança</strong> do Eterno com o seu povo. É por isso que o documento dá referências bíblicas, como Isaías 43: 10-11.</p>`,
+    terms: [
+      { term: "Bíblia", def: "O conjunto dos livros que traduz a aliança do Eterno com o seu povo." },
+      { term: "Aliança", def: "Compromisso, acordo solene. (Sentido corrente)" }
+    ],
+    source: src("p. 3"),
+    questions: [
+      { type: "mcq", q: "Segundo a doutrina KCCismo, qual é a fonte do ensino da Igreja?", options: ["A Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac", "Apenas a Bíblia", "Os jornais", "As decisões do Conselho Paroquial"], answer: 0, explain: "Segundo a doutrina KCCismo, a fonte do ensino da Igreja é a Bíblia e o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac." },
+      { type: "tf", q: "Segundo o documento, a Bíblia é o conjunto dos livros que traduz a aliança do Eterno com o seu povo.", answer: true, explain: "É a definição dada pelo documento." },
+      { type: "short", q: "Complete: « …o conjunto dos livros que traduz a … do Eterno com o seu povo. »", accept: ["alianca", "a alianca"], display: "aliança", explain: "« …que traduz a aliança do Eterno com o seu povo. »" },
+      { type: "tf", q: "Segundo o documento, a Bíblia é um só livro escrito por uma só pessoa.", answer: false, explain: "Falso: o documento fala de « o conjunto dos livros »." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 12 ---------------- */
+  {
+    id: 12, icon: "✨", title: "O significado de KCC",
+    summary: "Nkanda Wambote Wampa",
+    lesson: `<p>O documento ensina:</p>
+      <div class="prayer"><p>KCC são, portanto, os sinais proféticos que descrevem a mensagem que o Eterno tinha confiado ao seu Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac. Estas três letras traduzem o sinal da profecia que diferencia a EBNM (KCC) das outras Igrejas.</p>
+      <p>Importa sublinhar que foi na língua materna do Profeta DIZOLELE, o Kikongo, que a voz do Eterno interpretou estes sinais.</p></div>
+      <div class="kcc-grid">
+        <div class="kcc"><span>K</span><b>Nkanda</b><small>« carta », « livro » ou « Mensagem »</small></div>
+        <div class="kcc"><span>C</span><b>Wambote</b><small>« Boa »</small></div>
+        <div class="kcc"><span>C</span><b>Wampa</b><small>« Nova » (o que é novo)</small></div>
+      </div>
+      <p>KCC significa, portanto, <strong>« Nkanda Wambote Wampa »</strong>, o que se traduz literalmente em francês por <strong>« Message Bon Nouveau »</strong> ou <strong>« Bon Nouveau Message »</strong>, isto é, « Boa Nova Mensagem ».</p>`,
+    keyPoints: [
+      "KCC são os sinais proféticos que descrevem a mensagem que o Eterno tinha confiado ao seu Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "Estas três letras diferenciam a EBNM (KCC) das outras Igrejas.",
+      "A voz do Eterno interpretou estes sinais em Kikongo, língua materna do Profeta.",
+      "K = Nkanda (« carta », « livro » ou « Mensagem »); C = Wambote (« Boa »); C = Wampa (« Nova »).",
+      "KCC = « Nkanda Wambote Wampa » = « Bon Nouveau Message » (Boa Nova Mensagem)."
+    ],
+    understand: `<p>Cada letra corresponde a uma palavra kikongo: <strong>K</strong> para <em>Nkanda</em>, o primeiro <strong>C</strong> para <em>Wambote</em>, o segundo <strong>C</strong> para <em>Wampa</em>. Juntas, dão « Nkanda Wambote Wampa », isto é, « Bon Nouveau Message » (Boa Nova Mensagem): é o próprio nome da Igreja.</p>`,
+    terms: [
+      { term: "Nkanda", def: "« Carta », « livro » ou « Mensagem »." },
+      { term: "Wambote", def: "« Boa »." },
+      { term: "Wampa", def: "« Nova » (o que é novo)." },
+      { term: "Kikongo", def: "Língua materna do Profeta DIZOLELE, na qual a voz do Eterno interpretou os sinais KCC." }
+    ],
+    source: src("p. 3-4"),
+    questions: [
+      { type: "mcq", q: "O que significa KCC?", options: ["Nkanda Wambote Wampa", "Kimbanguismo Cristão Congolês", "Kongo Centro Culto", "O documento não o especifica"], answer: 0, explain: "KCC significa « Nkanda Wambote Wampa »." },
+      { type: "match", q: "Associe cada palavra kikongo à sua tradução.", pairs: [["Nkanda", "Carta, livro ou Mensagem"], ["Wambote", "Boa"], ["Wampa", "Nova"]], explain: "K = Nkanda, C = Wambote, C = Wampa." },
+      { type: "mcq", q: "Em que língua a voz do Eterno interpretou os sinais KCC?", options: ["Em Lingala", "Em Kikongo", "Em Francês", "Em Suaíli"], answer: 1, explain: "Em Kikongo, língua materna do Profeta DIZOLELE." },
+      { type: "tf", q: "« Nkanda Wambote Wampa » traduz-se em francês por « Bon Nouveau Message » (Boa Nova Mensagem).", answer: true, explain: "Literalmente « Message Bon Nouveau » ou « Bon Nouveau Message »." },
+      { type: "mcq", q: "Segundo o documento, o que descrevem os sinais proféticos KCC?", options: ["A mensagem que o Eterno tinha confiado ao seu Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac", "O nome de uma cidade", "Uma festa anual", "Um ramo da juventude"], answer: 0, explain: "Descrevem a mensagem que o Eterno tinha confiado ao seu Profeta." },
+      { type: "short", q: "O que significa a palavra kikongo « Wambote »?", accept: ["boa"], display: "Boa", explain: "Wambote significa « Boa »." },
+      { type: "tf", q: "A letra K corresponde à palavra « Wampa ».", answer: false, explain: "Falso: K corresponde a « Nkanda »." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 13 ---------------- */
+  {
+    id: 13, icon: "🤝", title: "O KCCismo e o Kccista",
+    summary: "A doutrina e o crente",
+    lesson: `<p>O documento ensina:</p>
+      <div class="prayer"><p>A doutrina da Église Bon Nouveau Message (KCC) é o « KCCismo » e a pessoa que crê no KCCismo é chamada « Kccista ».</p></div>
+      <p>O documento precisa também que o Monoteísmo radical é a linha mestra do KCCismo (capítulo 10).</p>`,
+    keyPoints: [
+      "O KCCismo é a doutrina da Église Bon Nouveau Message (KCC).",
+      "O Kccista é a pessoa que crê no KCCismo.",
+      "A linha mestra do KCCismo é o Monoteísmo radical."
+    ],
+    understand: `<p>Duas palavras próximas, dois sentidos diferentes: o <strong>KCCismo</strong> é o ensino (a doutrina); o <strong>Kccista</strong> é a pessoa que nele crê. O nome desta aplicação, « EU SOU KCCista », significa portanto « eu creio no KCCismo ».</p>`,
+    terms: [
+      { term: "KCCismo", def: "A doutrina da Église Bon Nouveau Message (KCC)." },
+      { term: "Kccista", def: "A pessoa que crê no KCCismo." }
+    ],
+    source: src("p. 4"),
+    questions: [
+      { type: "mcq", q: "O que é o KCCismo?", options: ["A doutrina da Église Bon Nouveau Message (KCC)", "O coro central da Igreja", "Um livro da Bíblia", "O ramo das mamãs"], answer: 0, explain: "A doutrina da Église Bon Nouveau Message (KCC) é o « KCCismo »." },
+      { type: "short", q: "Complete: « A pessoa que crê no KCCismo é chamada … »", accept: ["kccista", "um kccista"], display: "Kccista", explain: "A pessoa que crê no KCCismo é chamada « Kccista »." },
+      { type: "tf", q: "O Monoteísmo radical é a linha mestra do KCCismo.", answer: true, explain: "Está correto." },
+      { type: "tf", q: "« Kccista » designa a doutrina, e « KCCismo » designa a pessoa.", answer: false, explain: "É o inverso: KCCismo = doutrina, Kccista = pessoa." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 14 ---------------- */
+  {
+    id: 14, icon: "🗓️", title: "As datas históricas da Igreja",
+    summary: "As grandes etapas da história da Igreja",
+    lesson: `<p>Eis as datas históricas da Igreja indicadas no documento:</p>${timelineHTML()}`,
+    keyPoints: [
+      "01 de março de 1930: nascimento do Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "08 de março de 1955: nascimento da Église Bon Nouveau Message no Camp Teli em Forakam (Seke Banza).",
+      "12 de abril de 1958: aparecimento de KCC; 30 de abril de 1980: reconhecimento jurídico.",
+      "15 de abril de 2003: Oráculo do Eterno: « Quaisquer que sejam os milagres que opere, um homem não pode ser Deus ».",
+      "02 de agosto de 2005: a Igreja Universal dos Doze Apóstolos torna-se a Église Bon Nouveau Message (KCC).",
+      "20 de março de 2018: instituição da festa da Santa Convocação (festa da promulgação da Lei pelo Próprio Eterno)."
+    ],
+    understand: `<p>Aprenda as datas por ordem cronológica, associando sempre a data ao acontecimento. Memorize sobretudo que a Igreja se chamava anteriormente « Igreja Universal dos Doze Apóstolos » e que a mudança de nome, a 02 de agosto de 2005, mudou também o nome dos seus órgãos e ramos.</p>`,
+    terms: [
+      { term: "Oráculo", def: "Palavra divina revelada. (Sentido corrente)" },
+      { term: "Reconhecimento jurídico", def: "Reconhecimento oficial de uma organização pelo Estado. (Sentido corrente)" },
+      { term: "Santa Convocação", def: "Festa instituída a 20 de março de 2018, também chamada festa da promulgação da Lei pelo Próprio Eterno." },
+      { term: "Conselho Paroquial", def: "Órgão espiritual (antigamente Conselho dos Doze)." },
+      { term: "AFEBNM", def: "Ramo das mamãs (antigamente AMDAESS)." },
+      { term: "JEBNM", def: "Ramo da juventude (antigamente JEUDA)." },
+      { term: "CIRPRO", def: "Agrupamento local de entidades (antigamente CIRAPRO)." },
+      { term: "UVPRO", def: "Coro central da Igreja (antigamente UVA)." }
+    ],
+    source: src("p. 4"),
+    questions: [
+      { type: "mcq", q: "Quando nasceu o Profeta DIZOLELE MPUNGU WAFIDUSUA Isaac?", options: ["08 de março de 1955", "01 de março de 1930", "12 de abril de 1958", "30 de abril de 1980"], answer: 1, explain: "O Profeta nasceu a 01 de março de 1930." },
+      { type: "mcq", q: "Onde nasceu a Église Bon Nouveau Message a 08 de março de 1955?", options: ["No Camp Teli em Forakam (Seke Banza)", "Em Pika Pende", "Em Kinshasa", "O documento não o especifica"], answer: 0, explain: "No Camp Teli em Forakam (Seke Banza)." },
+      { type: "tf", q: "O aparecimento de KCC data de 12 de abril de 1958.", answer: true, explain: "Está correto: 12 de abril de 1958." },
+      { type: "short", q: "Em que ano obteve a Igreja o seu reconhecimento jurídico? (4 algarismos)", accept: ["1980"], display: "1980", explain: "A 30 de abril de 1980." },
+      { type: "mcq", q: "O que diz o Oráculo do Eterno de 15 de abril de 2003?", options: ["« Quaisquer que sejam os milagres que opere, um homem não pode ser Deus »", "« Lembra-te do dia de sábado »", "« O Eterno é Um »", "« Amai a Igreja »"], answer: 0, explain: "« Quaisquer que sejam os milagres que opere, um homem não pode ser Deus »." },
+      { type: "mcq", q: "Qual era o nome da Igreja antes de 02 de agosto de 2005?", options: ["Igreja Universal dos Doze Apóstolos", "Igreja do Camp Teli", "Igreja da Santa Convocação", "Igreja Nkanda"], answer: 0, explain: "A 02 de agosto de 2005, a Igreja Universal dos Doze Apóstolos tornou-se a Église Bon Nouveau Message (KCC)." },
+      { type: "match", q: "Associe cada antiga denominação à nova.", pairs: [["Conselho dos Doze", "Conselho Paroquial"], ["AMDAESS", "AFEBNM"], ["JEUDA", "JEBNM"], ["UVA", "UVPRO"]], explain: "Mudanças de 02 de agosto de 2005: Conselho Paroquial, AFEBNM, JEBNM, CIRPRO, UVPRO." },
+      { type: "match", q: "Associe cada data ao acontecimento.", pairs: [["08 de março de 1955", "Nascimento da Église Bon Nouveau Message"], ["15 de abril de 2003", "Oráculo do Eterno ao Seu Profeta"], ["02 de agosto de 2005", "Mudança de denominação"], ["20 de março de 2018", "Instituição da festa da Santa Convocação"]], explain: "Consulte a cronologia para rever cada data." },
+      { type: "mcq", q: "Que festa foi instituída a 20 de março de 2018?", options: ["A festa da Colheita", "A festa da Santa Convocação", "A festa dos Dons Pacíficos", "A festa do Camp Teli"], answer: 1, explain: "A festa da Santa Convocação ou festa da promulgação da Lei pelo Próprio Eterno." }
+    ]
+  },
+  /* ---------------- CAPÍTULO 15 ---------------- */
+  {
+    id: 15, icon: "🎓", title: "Revisão geral", summary: "Avaliação final da formação", final: true,
+    lesson: `<p>Este último capítulo reúne perguntas tiradas de todos os capítulos da formação.</p>
+      <p>A avaliação final tem ${CONFIG.FINAL_EXAM_SIZE} perguntas escolhidas ao acaso. Considera-se aprovada a partir de ${CONFIG.PASS_SCORE} %.</p>`,
+    keyPoints: [
+      "Releia as secções « A reter » de cada capítulo antes de começar.",
+      "Utilize « Os meus favoritos » para rever as noções que marcou.",
+      "Pode refazer a avaliação tantas vezes quantas forem necessárias: as perguntas mudam de cada vez."
+    ],
+    understand: `<p>A revisão geral permite verificar se reteve bem todo o percurso.</p>`,
+    terms: [], source: "Perguntas extraídas dos capítulos 1 a 14.", questions: []
+  }
+];
+
+return { CHAPTERS, DATES, timelineHTML };
+  },
+  /* ===== EN ===== */
+  en: () => {
+const DOC = "The doctrinal and teaching elements of the Église Bon Nouveau Message (KCC) – in French (unofficial translation)";
+const src = (pages) => `${DOC}, ${pages}.`;
+
+const TEN = [
+  "It is I, the Eternal, who am your God; you shall have no other god but me;",
+  "You shall not make for yourself carved images, you shall not bow down before them and you shall not serve them;",
+  "You shall not invoke the Name of the Eternal Your God in vain or in support of a lie;",
+  "Remember the sabbath day and keep it holy;",
+  "Honor your father and your mother, so that you may live long on the earth;",
+  "You shall not kill;",
+  "You shall not commit adultery;",
+  "You shall not steal;",
+  "You shall not lie;",
+  "You shall not covet the man, nor the woman, nor anything belonging to your neighbor."
+];
+const SEVEN = [
+  "Do not drink intoxicating beverages nor smoke;",
+  "Do not consult fetishers, diviners or the dead;",
+  "Take part in the worship of the sabbath and of the holy days;",
+  "Take part in the annual feast of the Harvest and that of the Peace Offerings;",
+  "Recognize that marriage is a sacred union to be safeguarded;",
+  "Remain holy;",
+  "Love the Church, protect it and support it."
+];
+const FAITH = [
+  "I believe in the Eternal God from whom all life flows. He is One, Lord of lords, Creator of heaven, of earth and of all that is in them;",
+  "I believe in the salvation that, by his grace, his mercy and in his Name, the Eternal God has offered to all humanity through his Covenant and his Law;",
+  "I believe in the Holy Word of God revealed to his prophets for the salvation of humanity;",
+  "I believe in the immortality of the soul and in eternal life;",
+  "I believe in the remission of sins by the Eternal, through the carrying out of his Law and in his Name;",
+  "I believe in divine judgment, in the reward of the righteous and in the eternal punishment of unbelievers;",
+  "I believe that The Anointed of God DIZOLELE MPUNGU WAFIDUSUA Isaac, is a Prophet come from the Eternal God;",
+  "I believe that the Église Bon Nouveau Message (KCC) comes from God, that it is one, Holy and Prophetic."
+];
+const FIVE = [
+  "To reveal to humanity the one true God, the Eternal;",
+  "To convert lost souls to the Eternal God;",
+  "To lead people to obey the covenant of the Eternal God, to practice justice and virtue;",
+  "To protect the followers against false doctrines;",
+  "To teach the faithful to live in the fear of the Eternal God in order to merit the kingdom of heaven."
+];
+const olist = (arr) => `<ol class="doc-list">${arr.map(t => `<li>${t}</li>`).join("")}</ol>`;
+
+/* Liturgical texts (verbatim) */
+const PRAYER_FIRST_PURIF = `<div class="prayer">
+  <div class="pr-mark">Beginning of the confession</div>
+  <p>Oh! Eternal, the One True God, Creator of the Universe and of all that is in it</p>
+  <p>By Your Holy Name, I kneel before You to confess my previously committed sins in order to obtain from You forgiveness for them for my sanctification.</p>
+  <p>I acknowledge that in the course of my life, I did not know Your Holy Name and Your Law, foundation of the salvation of my soul.</p>
+  <p>In this ignorance, I committed many sins which made me impure and far from You.</p>
+  <div class="pr-mark">End of the confession</div>
+  <p>By Your Holy Name, I ask You, Oh Eternal God, to forgive me all my previously committed failings.</p>
+  <p><strong>So be it by Your Holy Name.</strong></p></div>`;
+const PRAYER_PURIF = `<div class="prayer">
+  <div class="pr-mark">Beginning of the confession</div>
+  <p>By Your Holy Name, I kneel before You to confess my sins so that I may be forgiven.</p>
+  <div class="pr-mark">End of the confession</div>
+  <p>By Your Holy Name, I ask You, oh Eternal, to forgive me all my failings.</p>
+  <p><strong>So be it by Your Holy Name.</strong></p></div>`;
+const PRAYER_ONCTION = `<div class="prayer">
+  <p>The Eternal is our God,<br>The Eternal is One,<br>I will love and serve the Eternal my God</p>
+  <p>– With all my heart,<br>– With all my soul and<br>– With all my strength</p>
+  <p><strong>So be it in the name of the Eternal.</strong></p></div>`;
+
+/* [DATES] Chronology — text of the document */
+const DATES = [
+  { date: "01 March 1930",  title: "Birth of the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac" },
+  { date: "08 March 1955",  title: "Birth of the Église Bon Nouveau Message at Camp Teli in Forakam (Seke Banza)" },
+  { date: "12 April 1958", title: "Appearance of KCC" },
+  { date: "30 April 1980", title: "Legal Recognition" },
+  { date: "15 April 2003", title: "Oracle of the Eternal to His Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac saying: “Whatever miracles he performs, a man cannot be God”." },
+  { date: "02 August 2005",  title: "Change of the name of the Universal Church of Twelve Apostles to the Église Bon Nouveau Message (KCC)",
+    note: "This change will also lead to the change of the names of the bodies and branches within the Church:",
+    items: ["Council of Twelve to Parish Council (spiritual body)", "AMDAESS to AFEBNM (mothers' branch)", "JEUDA to JEBNM (youth branch)", "CIRAPRO to CIRPRO (local grouping of entities)", "UVA to UVPRO (central choir of the Church)"] },
+  { date: "20 March 2018",  title: "Institution of the feast of the Holy Convocation, or feast of the promulgation of the Law by the Eternal Himself." }
+];
+function timelineHTML() {
+  return `<div class="timeline">${DATES.map(d => `
+    <div class="tl-item card">
+      <div class="tl-date">${d.date}</div>
+      <div class="tl-title">${d.title}</div>
+      ${d.note ? `<p class="small muted" style="margin-top:8px">${d.note}</p><ul class="small">${d.items.map(i => `<li>${i}</li>`).join("")}</ul>` : ""}
+    </div>`).join("")}</div>`;
+}
+
+const STUDY_TIPS = `<ul>
+  <li>Read the text slowly, item by item, in order.</li>
+  <li>First memorize the number and the beginning of each sentence, then the full sentence.</li>
+  <li>Regularly reread the “Key points” section.</li>
+  <li>Take the test: the explanations help you correct your mistakes.</li>
+</ul>`;
+
+const CHAPTERS = [
+  /* ---------------- CHAPTER 1 ---------------- */
+  {
+    id: 1, icon: "🕊️", title: "Introduction to KCCism",
+    summary: "Overview of the Church's doctrinal teaching",
+    lesson: `<p>The training document is entitled <strong>“The doctrinal and teaching elements of the Église Bon Nouveau Message (KCC)”</strong>. It presents:</p>
+      <ul><li>the Ten Commandments of the Eternal God;</li><li>the Seven Commandments of the Church;</li><li>the Profession of Faith;</li><li>the five objectives of the Church's religious teaching;</li><li>the Sacraments of the Church (words of purification and of anointing);</li><li>the doctrinal specificity;</li><li>the historical dates of the Church.</li></ul>
+      <p>According to this document, the doctrine of the Église Bon Nouveau Message (KCC) is “KCCism”, and the person who believes in KCCism is called a “Kccist”.</p>
+      <p>Radical Monotheism is the guiding line of KCCism.</p>`,
+    keyPoints: [
+      "The name of the Church: Église Bon Nouveau Message (KCC).",
+      "The doctrine of the Église Bon Nouveau Message (KCC) is “KCCism”.",
+      "The person who believes in KCCism is called a “Kccist”.",
+      "Radical Monotheism is the guiding line of KCCism.",
+      "According to the KCCism doctrine, the source of the Church's teaching is the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac."
+    ],
+    understand: `<p>This first chapter gives an overview. Each element is then covered in detail in the following chapters. First remember three words: <strong>KCC</strong> (the name of the Church), <strong>KCCism</strong> (its doctrine) and <strong>Kccist</strong> (the person who believes in KCCism).</p>`,
+    terms: [
+      { term: "Neophyte", def: "A person who has newly entered a religious community and is beginning their training. (Common meaning)" },
+      { term: "KCCism", def: "The doctrine of the Église Bon Nouveau Message (KCC)." },
+      { term: "Kccist", def: "The person who believes in KCCism." },
+      { term: "KCC", def: "“Nkanda Wambote Wampa”: “Bon Nouveau Message” (Good New Message) (see chapter 12)." }
+    ],
+    source: src("pp. 1 to 4 (overview)"),
+    questions: [
+      { type: "mcq", q: "What is the name of the Church?", options: ["Universal Church of Twelve Apostles", "Église Bon Nouveau Message (KCC)", "Church of the Holy Convocation", "Church of Camp Teli"], answer: 1, explain: "The Church is called Église Bon Nouveau Message (KCC)." },
+      { type: "tf", q: "The doctrine of the Église Bon Nouveau Message (KCC) is called KCCism.", answer: true, explain: "Correct: the doctrine of the Church is “KCCism”." },
+      { type: "mcq", q: "What is the person who believes in KCCism called?", options: ["A neophyte", "A Kccist", "A prophet", "An apostle"], answer: 1, explain: "The person who believes in KCCism is called a “Kccist”." },
+      { type: "mcq", q: "What is the guiding line of KCCism?", options: ["Radical Monotheism", "The feast of the Harvest", "Legal recognition", "The Parish Council"], answer: 0, explain: "Radical Monotheism is the guiding line of KCCism." },
+      { type: "tf", q: "According to the KCCism doctrine, the source of the Church's teaching is the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac.", answer: true, explain: "Correct: the source of the Church's teaching is the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac." }
+    ]
+  },
+  /* ---------------- CHAPTER 2 ---------------- */
+  {
+    id: 2, icon: "📜", title: "The Ten Commandments of the Eternal God",
+    summary: "The ten commandments as stated in the document",
+    lesson: `<p>The training document states the Ten Commandments of the Eternal God as follows:</p>${olist(TEN)}`,
+    keyPoints: [
+      "There are ten commandments of the Eternal God.",
+      "1st: “It is I, the Eternal, who am your God; you shall have no other god but me.”",
+      "4th: “Remember the sabbath day and keep it holy.”",
+      "5th: “Honor your father and your mother, so that you may live long on the earth.”",
+      "6th to 9th: “You shall not kill; You shall not commit adultery; You shall not steal; You shall not lie.”",
+      "10th: “You shall not covet the man, nor the woman, nor anything belonging to your neighbor.”"
+    ],
+    understand: `<p>Each commandment speaks directly to the believer (“you”). To learn them well:</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Carved images", def: "Statues or sculpted representations. (Common meaning)" },
+      { term: "Invoke in vain", def: "To utter a name for no valid reason, uselessly. (Common meaning)" },
+      { term: "Adultery", def: "A relationship of a married person with someone other than their spouse. (Common meaning)" },
+      { term: "Covet", def: "To desire enviously what belongs to another. (Common meaning)" }
+    ],
+    source: src("p. 1"),
+    questions: [
+      { type: "mcq", q: "How many commandments of the Eternal God does the document present?", options: ["Seven", "Eight", "Ten", "Twelve"], answer: 2, explain: "The document presents the Ten Commandments of the Eternal God." },
+      { type: "mcq", q: "What is the first commandment?", options: ["You shall not kill", "It is I, the Eternal, who am your God; you shall have no other god but me", "Honor your father and your mother", "Remember the sabbath day and keep it holy"], answer: 1, explain: "The 1st commandment: “It is I, the Eternal, who am your God; you shall have no other god but me.”" },
+      { type: "tf", q: "The 4th commandment says: “Remember the sabbath day and keep it holy.”", answer: true, explain: "Correct: this is the text of the 4th commandment." },
+      { type: "short", q: "Complete the 5th commandment: “Honor your father and your mother, so that you may live long …”", accept: ["on the earth", "on earth", "the earth"], display: "on the earth", explain: "“Honor your father and your mother, so that you may live long on the earth.”" },
+      { type: "match", q: "Match each number with its commandment.", pairs: [["6th commandment", "You shall not kill"], ["7th commandment", "You shall not commit adultery"], ["8th commandment", "You shall not steal"], ["9th commandment", "You shall not lie"]], explain: "Commandments 6 to 9: do not kill, do not commit adultery, do not steal, do not lie." },
+      { type: "tf", q: "The 3rd commandment says: “You shall not invoke the Name of the Eternal Your God in vain or in support of a lie.”", answer: true, explain: "This is indeed the text of the 3rd commandment." },
+      { type: "mcq", q: "What does the 2nd commandment say about carved images?", options: ["That they must be placed in homes", "You shall not make them for yourself, you shall not bow down before them and you shall not serve them", "That they are allowed on the sabbath day", "The 2nd commandment does not speak of images"], answer: 1, explain: "“You shall not make for yourself carved images, you shall not bow down before them and you shall not serve them.”" },
+      { type: "tf", q: "The 10th commandment speaks only of the neighbor's material goods.", answer: false, explain: "False: it mentions “nor the man, nor the woman, nor anything belonging to your neighbor”." }
+    ]
+  },
+  /* ---------------- CHAPTER 3 ---------------- */
+  {
+    id: 3, icon: "⛪", title: "The Seven Commandments of the Church",
+    summary: "The seven rules of life given by the Church",
+    lesson: `<p>The training document states the Seven Commandments of the Church as follows:</p>${olist(SEVEN)}`,
+    keyPoints: [
+      "There are seven commandments of the Church.",
+      "1st: “Do not drink intoxicating beverages nor smoke.”",
+      "2nd: “Do not consult fetishers, diviners or the dead.”",
+      "3rd and 4th: take part in the worship of the sabbath and of the holy days, as well as in the annual feast of the Harvest and that of the Peace Offerings.",
+      "5th: “Recognize that marriage is a sacred union to be safeguarded.”",
+      "6th and 7th: “Remain holy”; “Love the Church, protect it and support it.”"
+    ],
+    understand: `<p>These seven commandments concern the believer's daily life and their participation in the life of the Church. To learn them:</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Intoxicating beverages", def: "Drinks that make one drunk, such as alcoholic drinks. (Common meaning)" },
+      { term: "Fetisher", def: "A person who practices the worship of fetishes. (Common meaning)" },
+      { term: "Diviner", def: "A person who claims to know the future or hidden things. (Common meaning)" }
+    ],
+    source: src("p. 1"),
+    questions: [
+      { type: "mcq", q: "How many commandments of the Church does the document present?", options: ["Five", "Seven", "Ten", "Eight"], answer: 1, explain: "The document presents the Seven Commandments of the Church." },
+      { type: "tf", q: "The 1st commandment of the Church: “Do not drink intoxicating beverages nor smoke.”", answer: true, explain: "Correct." },
+      { type: "mcq", q: "According to the 2nd commandment of the Church, the believer must not consult:", options: ["The elders of the Church", "Fetishers, diviners or the dead", "Doctors", "Preachers"], answer: 1, explain: "“Do not consult fetishers, diviners or the dead.”" },
+      { type: "short", q: "Complete the 4th commandment: “Take part in the annual feast of the … and that of the Peace Offerings.”", accept: ["harvest", "the harvest"], display: "Harvest", explain: "“Take part in the annual feast of the Harvest and that of the Peace Offerings.”" },
+      { type: "tf", q: "The 5th commandment of the Church asks us to recognize that marriage is a sacred union to be safeguarded.", answer: true, explain: "Correct: “Recognize that marriage is a sacred union to be safeguarded.”" },
+      { type: "match", q: "Match each number with its commandment of the Church.", pairs: [["1st", "Do not drink intoxicating beverages nor smoke"], ["3rd", "Take part in the worship of the sabbath and of the holy days"], ["6th", "Remain holy"], ["7th", "Love the Church, protect it and support it"]], explain: "Reread the full list in the lesson to memorize the order well." },
+      { type: "mcq", q: "What does the 7th commandment of the Church ask?", options: ["Remain holy", "Love the Church, protect it and support it", "Take part in the feast of the Harvest", "Do not smoke"], answer: 1, explain: "The 7th commandment: “Love the Church, protect it and support it.”" }
+    ]
+  },
+  /* ---------------- CHAPTER 4 ---------------- */
+  {
+    id: 4, icon: "🗣️", title: "The Profession of Faith",
+    summary: "The eight elements of the Profession of Faith",
+    lesson: `<p>The document presents the Profession of Faith as follows, in eight elements:</p>${olist(FAITH)}`,
+    keyPoints: [
+      "The Profession of Faith has eight elements; each begins with “I believe”.",
+      "1st: the Eternal God, from whom all life flows, is One, Lord of lords, Creator of heaven, of earth and of all that is in them.",
+      "3rd and 4th: the Holy Word of God revealed to his prophets; the immortality of the soul and eternal life.",
+      "6th: divine judgment, the reward of the righteous and the eternal punishment of unbelievers.",
+      "7th: “The Anointed of God DIZOLELE MPUNGU WAFIDUSUA Isaac, is a Prophet come from the Eternal God.”",
+      "8th: the Église Bon Nouveau Message (KCC) comes from God; it is one, Holy and Prophetic."
+    ],
+    understand: `<p>The Profession of Faith sums up what the Kccist believes. Each element begins with “I believe”. To remember it, identify the theme of each element:</p>
+      <ol><li>the Eternal God;</li><li>salvation;</li><li>the Holy Word of God;</li><li>the immortality of the soul and eternal life;</li><li>the remission of sins;</li><li>divine judgment;</li><li>the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac;</li><li>the Église Bon Nouveau Message (KCC).</li></ol>`,
+    terms: [
+      { term: "Profession of faith", def: "A declaration of what one believes. (Common meaning)" },
+      { term: "Remission of sins", def: "Forgiveness of sins. (Common meaning)" },
+      { term: "Unbelievers", def: "People who do not believe. (Common meaning)" }
+    ],
+    source: src("pp. 1-2"),
+    questions: [
+      { type: "mcq", q: "How many elements does the Profession of Faith have?", options: ["Five", "Seven", "Eight", "Ten"], answer: 2, explain: "The Profession of Faith has eight elements." },
+      { type: "short", q: "Complete: “I believe in the Eternal God from whom all … flows.”", accept: ["life", "the life"], display: "life", explain: "“I believe in the Eternal God from whom all life flows.”" },
+      { type: "tf", q: "The 4th element says: “I believe in the immortality of the soul and in eternal life.”", answer: true, explain: "Correct." },
+      { type: "mcq", q: "What does the 7th element of the Profession of Faith say?", options: ["I believe in divine judgment", "I believe that The Anointed of God DIZOLELE MPUNGU WAFIDUSUA Isaac, is a Prophet come from the Eternal God", "I believe in eternal life", "I believe in the remission of sins"], answer: 1, explain: "7th element: “I believe that The Anointed of God DIZOLELE MPUNGU WAFIDUSUA Isaac, is a Prophet come from the Eternal God.”" },
+      { type: "mcq", q: "According to the 8th element, the Église Bon Nouveau Message (KCC) is:", options: ["one, Holy and Prophetic", "universal and apostolic", "ancient and traditional", "the document does not say"], answer: 0, explain: "“…it is one, Holy and Prophetic.”" },
+      { type: "match", q: "Match each element with its theme.", pairs: [["2nd element", "Salvation offered through the Covenant and the Law"], ["3rd element", "The Holy Word of God revealed to his prophets"], ["5th element", "The remission of sins"], ["6th element", "Divine judgment"]], explain: "Reread the eight elements in order." },
+      { type: "tf", q: "The 6th element speaks of divine judgment, the reward of the righteous and the eternal punishment of unbelievers.", answer: true, explain: "Correct." }
+    ]
+  },
+  /* ---------------- CHAPTER 5 ---------------- */
+  {
+    id: 5, icon: "🎯", title: "The five objectives of the Church's religious teaching",
+    summary: "Why the Church teaches",
+    lesson: `<p>The training document states the five objectives of the Church's religious teaching as follows:</p>${olist(FIVE)}`,
+    keyPoints: [
+      "The Church's religious teaching pursues five objectives.",
+      "1st: “To reveal to humanity the one true God, the Eternal.”",
+      "2nd: “To convert lost souls to the Eternal God.”",
+      "3rd: “To lead people to obey the covenant of the Eternal God, to practice justice and virtue.”",
+      "4th: “To protect the followers against false doctrines.”",
+      "5th: “To teach the faithful to live in the fear of the Eternal God in order to merit the kingdom of heaven.”"
+    ],
+    understand: `<p>These five objectives explain the purpose of the teaching you receive during this training.</p>${STUDY_TIPS}`,
+    terms: [
+      { term: "Convert", def: "To lead someone to adopt a faith. (Common meaning)" },
+      { term: "Followers", def: "People who follow a teaching or a religion. (Common meaning)" }
+    ],
+    source: src("p. 2"),
+    questions: [
+      { type: "mcq", q: "How many objectives does the Church's religious teaching pursue?", options: ["Three", "Five", "Seven", "Ten"], answer: 1, explain: "The document states five objectives." },
+      { type: "mcq", q: "What is the first objective?", options: ["To protect the followers against false doctrines", "To reveal to humanity the one true God, the Eternal", "To convert lost souls", "To build places of worship"], answer: 1, explain: "1st objective: “To reveal to humanity the one true God, the Eternal.”" },
+      { type: "tf", q: "One of the objectives is to protect the followers against false doctrines.", answer: true, explain: "It is the 4th objective." },
+      { type: "short", q: "Complete the 2nd objective: “To convert lost souls to the … God.”", accept: ["eternal", "the eternal"], display: "Eternal", explain: "“To convert lost souls to the Eternal God.”" },
+      { type: "match", q: "Match each objective with its number.", pairs: [["3rd objective", "To lead people to obey the covenant of the Eternal God, to practice justice and virtue"], ["4th objective", "To protect the followers against false doctrines"], ["5th objective", "To teach the faithful to live in the fear of the Eternal God"]], explain: "Reread the five objectives in order." },
+      { type: "tf", q: "The 5th objective speaks of living in the fear of the Eternal God in order to merit the kingdom of heaven.", answer: true, explain: "Correct." }
+    ]
+  },
+  /* ---------------- CHAPTER 6 ---------------- */
+  {
+    id: 6, icon: "💧", title: "The Sacraments of the Church",
+    summary: "The words of purification and of anointing",
+    lesson: `<p>Under the heading <strong>“The Sacraments of the Church”</strong>, the document presents three words:</p>
+      ${olist(["The Word of the First Purification", "The Word of the Purification", "The Word for the 1st Anointing"])}
+      <p>The full text of these words is presented in chapter 7 (purification) and chapter 8 (anointing).</p>
+      ${pend("Detailed explanation of the sacraments (not provided in the document)")}`,
+    keyPoints: [
+      "Under “The Sacraments of the Church”, the document presents three words.",
+      "The Word of the First Purification and the Word of the Purification are two distinct texts.",
+      "The third is the Word for the 1st Anointing.",
+      "The words of purification end with “So be it by Your Holy Name.”",
+      "The word of anointing ends with “So be it in the name of the Eternal.”"
+    ],
+    understand: `<p>This chapter gives you the outline: two words of purification and one word of anointing. Then study each text in detail in chapters 7 and 8.</p>`,
+    terms: [
+      { term: "Purification", def: "The act of making pure. (Common meaning)" },
+      { term: "Anointing", def: "The act of anointing, that is, applying oil ritually. (Common meaning)" }
+    ],
+    source: src("pp. 2-3"),
+    questions: [
+      { type: "mcq", q: "How many words does the document present under “The Sacraments of the Church”?", options: ["One", "Two", "Three", "Seven"], answer: 2, explain: "Three: First Purification, Purification, 1st Anointing." },
+      { type: "tf", q: "The document distinguishes the Word of the First Purification from the Word of the Purification.", answer: true, explain: "They are two distinct texts." },
+      { type: "mcq", q: "Which of these words appears under “The Sacraments of the Church”?", options: ["The Word for the 1st Anointing", "The word of the feast of the Harvest", "The word of the Parish Council", "The word of the Holy Convocation"], answer: 0, explain: "The document presents the Word for the 1st Anointing." },
+      { type: "short", q: "Complete the ending of the words of purification: “So be it by Your Holy …”", accept: ["name"], display: "Name", explain: "“So be it by Your Holy Name.”" },
+      { type: "tf", q: "The Word for the 1st Anointing ends with “So be it in the name of the Eternal.”", answer: true, explain: "Correct." }
+    ]
+  },
+  /* ---------------- CHAPTER 7 ---------------- */
+  {
+    id: 7, icon: "🌿", title: "The First Purification",
+    summary: "Word of the First Purification and Word of the Purification",
+    lesson: `<h3 class="sub-h">Word of the First Purification</h3>${PRAYER_FIRST_PURIF}
+      <h3 class="sub-h">Word of the Purification</h3>${PRAYER_PURIF}`,
+    keyPoints: [
+      "Each word includes a confession, placed between “Beginning of the confession” and “End of the confession”, followed by a request for forgiveness.",
+      "The First Purification is addressed to the Eternal, the One True God, Creator of the Universe.",
+      "In it one confesses the previously committed sins in order to obtain forgiveness for one's sanctification.",
+      "In it one acknowledges having not known the Holy Name of the Eternal and His Law, “foundation of the salvation of my soul”.",
+      "The Word of the Purification is shorter: confessing one's sins in order to be forgiven.",
+      "Both end with “So be it by Your Holy Name.”"
+    ],
+    understand: `<p>The two words have the same structure:</p>
+      <ol><li><strong>The confession</strong>: the person kneels before the Eternal, by His Holy Name, and confesses their sins.</li>
+      <li><strong>The request for forgiveness</strong>: they ask the Eternal to forgive their failings.</li>
+      <li><strong>The conclusion</strong>: “So be it by Your Holy Name.”</li></ol>
+      <p>The Word of the First Purification is more developed: it mentions the sins committed in ignorance of the Holy Name and the Law of the Eternal.</p>
+      ${pend("Time and procedure of each purification")}`,
+    terms: [
+      { term: "Confession", def: "Acknowledgment of one's faults. (Common meaning)" },
+      { term: "Confess", def: "To declare one's sins. (Common meaning)" },
+      { term: "Sanctification", def: "The act of making holy. (Common meaning)" },
+      { term: "Failings", def: "Faults, failures in a duty. (Common meaning)" }
+    ],
+    source: src("pp. 2-3"),
+    questions: [
+      { type: "mcq", q: "In the Word of the First Purification, the person kneels in order to:", options: ["Sing a hymn", "Confess their previously committed sins in order to obtain forgiveness for them", "Receive the anointing", "Recite the commandments"], answer: 1, explain: "“…to confess my previously committed sins in order to obtain from You forgiveness for them for my sanctification.”" },
+      { type: "tf", q: "In the confession of the First Purification, the person acknowledges that they did not know the Holy Name of the Eternal and His Law.", answer: true, explain: "“…I did not know Your Holy Name and Your Law, foundation of the salvation of my soul.”" },
+      { type: "short", q: "Complete: “…Your Holy Name and Your Law, foundation of the … of my soul.”", accept: ["salvation"], display: "salvation", explain: "“…Your Law, foundation of the salvation of my soul.”" },
+      { type: "tf", q: "The Word of the Purification is longer than that of the First Purification.", answer: false, explain: "False: the Word of the Purification is the shorter one." },
+      { type: "mcq", q: "Between which headings is the confession placed?", options: ["“Beginning of the confession” and “End of the confession”", "“Amen” and “Hallelujah”", "“First” and “Last”", "There is no confession"], answer: 0, explain: "The confession is placed between “Beginning of the confession” and “End of the confession”." },
+      { type: "mcq", q: "How do the words of purification end?", options: ["So be it in the name of the Eternal", "So be it by Your Holy Name", "Amen", "Glory to God"], answer: 1, explain: "“So be it by Your Holy Name.”" }
+    ]
+  },
+  /* ---------------- CHAPTER 8 ---------------- */
+  {
+    id: 8, icon: "🕯️", title: "The Word of the First Anointing",
+    summary: "The text of the Word for the 1st Anointing",
+    lesson: `<h3 class="sub-h">Word for the 1st Anointing</h3>${PRAYER_ONCTION}`,
+    keyPoints: [
+      "“The Eternal is our God, The Eternal is One.”",
+      "“I will love and serve the Eternal my God”",
+      "… with all my heart, with all my soul and with all my strength.",
+      "Conclusion: “So be it in the name of the Eternal.”"
+    ],
+    understand: `<p>The word unfolds in three parts:</p>
+      <ol><li><strong>A proclamation</strong>: the Eternal is our God, the Eternal is One.</li>
+      <li><strong>A commitment</strong>: to love and serve the Eternal with all one's heart, with all one's soul and with all one's strength.</li>
+      <li><strong>The conclusion</strong>: “So be it in the name of the Eternal.”</li></ol>
+      ${pend("Order of the 1st Anointing")}`,
+    terms: [
+      { term: "Anointing", def: "The act of anointing, that is, applying oil in a ritual way. (Common meaning)" }
+    ],
+    source: src("p. 3"),
+    questions: [
+      { type: "short", q: "Complete: “The Eternal is our God, The Eternal is …”", accept: ["one"], display: "One", explain: "“The Eternal is our God, The Eternal is One.”" },
+      { type: "mcq", q: "Complete: “I will love and serve the Eternal my God with all my heart, with all my soul and…”", options: ["with all my family", "with all my strength", "with all my voice", "with all my time"], answer: 1, explain: "“…With all my strength.”" },
+      { type: "tf", q: "In this word, the believer says: “I will love and serve the Eternal my God”.", answer: true, explain: "That is correct." },
+      { type: "mcq", q: "How does the Word for the 1st Anointing end?", options: ["So be it by Your Holy Name", "So be it in the name of the Eternal", "Amen", "Let it be so"], answer: 1, explain: "“So be it in the name of the Eternal.”" },
+      { type: "mcq", q: "How many “With all…” does the commitment contain?", options: ["Two", "Three", "Four", "Five"], answer: 1, explain: "Three: with all my heart, with all my soul, with all my strength." }
+    ]
+  },
+  /* ---------------- CHAPTER 9 ---------------- */
+  {
+    id: 9, icon: "🧭", title: "The doctrinal specificity",
+    summary: "The four points that characterize the teaching",
+    lesson: `<p>Under the heading “Doctrinal specificity”, the document presents four points:</p>
+      <ol type="a"><li><strong>Radical Monotheism</strong>: the guiding principle of KCCism (chapter 10);</li>
+      <li><strong>The source of the Church's teaching</strong>: the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac (chapter 11);</li>
+      <li><strong>KCC</strong>: the prophetic signs and their meaning (chapter 12);</li>
+      <li><strong>The doctrine of the Église Bon Nouveau Message (KCC)</strong>: KCCism; the one who believes in it is a Kccist (chapter 13).</li></ol>
+      <p>According to the document, the three letters KCC express the sign of the prophecy that distinguishes the EBNM (KCC) from other Churches.</p>`,
+    keyPoints: [
+      "The doctrinal specificity comprises four points (a, b, c, d).",
+      "a) Radical Monotheism, the guiding principle of KCCism.",
+      "b) The source of the Church's teaching: the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "c) KCC: the prophetic signs that distinguish the EBNM (KCC) from other Churches.",
+      "d) The doctrine: KCCism; the believer: the Kccist."
+    ],
+    understand: `<p>This chapter is an outline. Remember the four points in order (a, b, c, d): each one is detailed in chapters 10 to 13.</p>`,
+    terms: [
+      { term: "EBNM", def: "Église Bon Nouveau Message (acronym used in the document)." },
+      { term: "Doctrine", def: "The body of teachings of a religion. (Common meaning)" }
+    ],
+    source: src("p. 3-4"),
+    questions: [
+      { type: "mcq", q: "How many points does the doctrinal specificity comprise?", options: ["Two", "Three", "Four", "Eight"], answer: 2, explain: "Four points: a, b, c and d." },
+      { type: "match", q: "Match each letter to its point.", pairs: [["a)", "Radical Monotheism"], ["b)", "The source of the teaching: the Bible and the Prophet"], ["c)", "KCC"], ["d)", "The doctrine of the Church: KCCism"]], explain: "a) Radical Monotheism, b) the Bible and the Prophet, c) KCC, d) KCCism." },
+      { type: "tf", q: "According to the document, the letters KCC distinguish the EBNM (KCC) from other Churches.", answer: true, explain: "“These three letters express the sign of the prophecy that distinguishes the EBNM (KCC) from other Churches.”" },
+      { type: "mcq", q: "What does the acronym EBNM stand for?", options: ["Église Bon Nouveau Message", "Church of the Bible and the New World", "National and Missionary Biblical Church", "The document does not use it"], answer: 0, explain: "EBNM: Église Bon Nouveau Message." }
+    ]
+  },
+  /* ---------------- CHAPTER 10 ---------------- */
+  {
+    id: 10, icon: "☝️", title: "Radical Monotheism",
+    summary: "The guiding principle of KCCism",
+    lesson: `<p>The document teaches:</p>
+      <div class="prayer"><p>Radical Monotheism: it is the guiding principle of KCCism. Which means: “to believe in the Eternal, the One true God, Creator of heaven, of earth and of all that is in them; the one and only Saviour of humanity by his grace, his mercy and in his name”</p><p><strong>(Isaiah 43 : 10-11)</strong></p></div>`,
+    keyPoints: [
+      "Radical Monotheism is the guiding principle of KCCism.",
+      "To believe in the Eternal, the One true God.",
+      "The Eternal is Creator of heaven, of earth and of all that is in them.",
+      "The Eternal is the one and only Saviour of humanity, by his grace, his mercy and in his name.",
+      "Bible reference: Isaiah 43 : 10-11."
+    ],
+    understand: `<p>“Mono” means “only one”: Monotheism is faith in one God alone. According to the document, in KCCism this faith is <strong>radical</strong>: the Eternal is the One true God, the Creator, and the one and only Saviour of humanity.</p>
+      <p>Also read Isaiah 43 : 10-11 in your Bible.</p>`,
+    terms: [
+      { term: "Monotheism", def: "Belief in one single God. (Common meaning)" },
+      { term: "Radical Monotheism", def: "Guiding principle of KCCism: to believe in the Eternal, the One true God, Creator, one and only Saviour of humanity." },
+      { term: "Guiding principle", def: "Main idea, central point. (Common meaning)" }
+    ],
+    source: src("p. 3 — Isaiah 43 : 10-11"),
+    questions: [
+      { type: "mcq", q: "What is Radical Monotheism for KCCism?", options: ["An annual feast", "The guiding principle of KCCism", "A commandment of the Church", "A branch of the Church"], answer: 1, explain: "“Radical Monotheism: it is the guiding principle of KCCism.”" },
+      { type: "mcq", q: "Which Bible reference does the document give for Radical Monotheism?", options: ["Genesis 1 : 1", "Isaiah 43 : 10-11", "Psalm 23", "Exodus 20"], answer: 1, explain: "The document cites Isaiah 43 : 10-11." },
+      { type: "tf", q: "According to the document, the Eternal is the one and only Saviour of humanity.", answer: true, explain: "“…the one and only Saviour of humanity by his grace, his mercy and in his name”." },
+      { type: "short", q: "Complete: “…Saviour of humanity by his grace, his mercy and in his …”", accept: ["name"], display: "name", explain: "“…by his grace, his mercy and in his name”." },
+      { type: "tf", q: "Radical Monotheism consists in believing in several gods.", answer: false, explain: "False: it means believing in the Eternal, the One true God." }
+    ]
+  },
+  /* ---------------- CHAPTER 11 ---------------- */
+  {
+    id: 11, icon: "📖", title: "The Bible and the Prophet, source of the teaching",
+    summary: "The source of the Church's teaching",
+    lesson: `<p>The document teaches:</p>
+      <div class="prayer"><p>The source of the Church’s teaching: it is the Bible, which is the collection of books that expresses the covenant of the Eternal with his people.</p></div>
+      <p>According to the KCCism doctrine, the source of the Church's teaching is <strong>the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac</strong>.</p>`,
+    keyPoints: [
+      "According to the KCCism doctrine, the source of the Church's teaching is the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "The Bible is the collection of books that expresses the covenant of the Eternal with his people."
+    ],
+    understand: `<p>Everything the Church teaches has as its source the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac. The document defines the Bible as a <strong>collection of books</strong> that expresses the <strong>covenant</strong> of the Eternal with his people. That is why the document gives Bible references, such as Isaiah 43 : 10-11.</p>`,
+    terms: [
+      { term: "Bible", def: "The collection of books that expresses the covenant of the Eternal with his people." },
+      { term: "Covenant", def: "Commitment, solemn agreement. (Common meaning)" }
+    ],
+    source: src("p. 3"),
+    questions: [
+      { type: "mcq", q: "According to the KCCism doctrine, what is the source of the Church's teaching?", options: ["The Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac", "The Bible only", "Newspapers", "The decisions of the Parish Council"], answer: 0, explain: "According to the KCCism doctrine, the source of the Church's teaching is the Bible and the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac." },
+      { type: "tf", q: "According to the document, the Bible is the collection of books that expresses the covenant of the Eternal with his people.", answer: true, explain: "That is the definition given by the document." },
+      { type: "short", q: "Complete: “…the collection of books that expresses the … of the Eternal with his people.”", accept: ["covenant", "the covenant"], display: "covenant", explain: "“…that expresses the covenant of the Eternal with his people.”" },
+      { type: "tf", q: "According to the document, the Bible is a single book written by a single person.", answer: false, explain: "False: the document speaks of “the collection of books”." }
+    ]
+  },
+  /* ---------------- CHAPTER 12 ---------------- */
+  {
+    id: 12, icon: "✨", title: "The meaning of KCC",
+    summary: "Nkanda Wambote Wampa",
+    lesson: `<p>The document teaches:</p>
+      <div class="prayer"><p>KCC are therefore the prophetic signs that describe the message that the Eternal had entrusted to his Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac. These three letters express the sign of the prophecy that distinguishes the EBNM (KCC) from other Churches.</p>
+      <p>It is important to emphasize that it is in the mother tongue of the Prophet DIZOLELE, Kikongo, that the voice of the Eternal interpreted these signs.</p></div>
+      <div class="kcc-grid">
+        <div class="kcc"><span>K</span><b>Nkanda</b><small>“letter”, “book” or “Message”</small></div>
+        <div class="kcc"><span>C</span><b>Wambote</b><small>“Good”</small></div>
+        <div class="kcc"><span>C</span><b>Wampa</b><small>“New” (that which is new)</small></div>
+      </div>
+      <p>KCC therefore means <strong>“Nkanda Wambote Wampa”</strong>, which translates literally into French as <strong>“Message Bon Nouveau”</strong> or <strong>“Bon Nouveau Message”</strong> (in English: “Good New Message”).</p>`,
+    keyPoints: [
+      "KCC are the prophetic signs that describe the message that the Eternal had entrusted to his Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "These three letters distinguish the EBNM (KCC) from other Churches.",
+      "The voice of the Eternal interpreted these signs in Kikongo, the Prophet's mother tongue.",
+      "K = Nkanda (“letter”, “book” or “Message”); C = Wambote (“Good”); C = Wampa (“New”).",
+      "KCC = “Nkanda Wambote Wampa” = “Bon Nouveau Message” (Good New Message)."
+    ],
+    understand: `<p>Each letter corresponds to a Kikongo word: <strong>K</strong> for <em>Nkanda</em>, the first <strong>C</strong> for <em>Wambote</em>, the second <strong>C</strong> for <em>Wampa</em>. Put together, they give “Nkanda Wambote Wampa”, that is, “Bon Nouveau Message” (Good New Message): it is the very name of the Church.</p>`,
+    terms: [
+      { term: "Nkanda", def: "“Letter”, “book” or “Message”." },
+      { term: "Wambote", def: "“Good”." },
+      { term: "Wampa", def: "“New” (that which is new)." },
+      { term: "Kikongo", def: "Mother tongue of the Prophet DIZOLELE, in which the voice of the Eternal interpreted the KCC signs." }
+    ],
+    source: src("p. 3-4"),
+    questions: [
+      { type: "mcq", q: "What does KCC mean?", options: ["Nkanda Wambote Wampa", "Congolese Christian Kimbanguism", "Kongo Central Worship", "The document does not specify"], answer: 0, explain: "KCC means “Nkanda Wambote Wampa”." },
+      { type: "match", q: "Match each Kikongo word to its translation.", pairs: [["Nkanda", "Letter, book or Message"], ["Wambote", "Good"], ["Wampa", "New"]], explain: "K = Nkanda, C = Wambote, C = Wampa." },
+      { type: "mcq", q: "In which language did the voice of the Eternal interpret the KCC signs?", options: ["Lingala", "Kikongo", "French", "Swahili"], answer: 1, explain: "In Kikongo, the mother tongue of the Prophet DIZOLELE." },
+      { type: "tf", q: "“Nkanda Wambote Wampa” translates into French as “Bon Nouveau Message” (Good New Message).", answer: true, explain: "Literally “Message Bon Nouveau” or “Bon Nouveau Message”." },
+      { type: "mcq", q: "According to the document, what do the KCC prophetic signs describe?", options: ["The message that the Eternal had entrusted to his Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac", "The name of a city", "An annual feast", "A youth branch"], answer: 0, explain: "They describe the message that the Eternal had entrusted to his Prophet." },
+      { type: "short", q: "What does the Kikongo word “Wambote” mean?", accept: ["good"], display: "Good", explain: "Wambote means “Good”." },
+      { type: "tf", q: "The letter K corresponds to the word “Wampa”.", answer: false, explain: "False: K corresponds to “Nkanda”." }
+    ]
+  },
+  /* ---------------- CHAPTER 13 ---------------- */
+  {
+    id: 13, icon: "🤝", title: "KCCism and the Kccist",
+    summary: "The doctrine and the believer",
+    lesson: `<p>The document teaches:</p>
+      <div class="prayer"><p>The doctrine of the Église Bon Nouveau Message (KCC) is “KCCism” and the person who believes in KCCism is called a “Kccist”.</p></div>
+      <p>The document also specifies that Radical Monotheism is the guiding principle of KCCism (chapter 10).</p>`,
+    keyPoints: [
+      "KCCism is the doctrine of the Église Bon Nouveau Message (KCC).",
+      "The Kccist is the person who believes in KCCism.",
+      "The guiding principle of KCCism is Radical Monotheism."
+    ],
+    understand: `<p>Two similar words, two different meanings: <strong>KCCism</strong> is the teaching (the doctrine); the <strong>Kccist</strong> is the person who believes in it. The name of this app, “JE SUIS KCCiste” (I am a Kccist), therefore means “I believe in KCCism”.</p>`,
+    terms: [
+      { term: "KCCism", def: "The doctrine of the Église Bon Nouveau Message (KCC)." },
+      { term: "Kccist", def: "The person who believes in KCCism." }
+    ],
+    source: src("p. 4"),
+    questions: [
+      { type: "mcq", q: "What is KCCism?", options: ["The doctrine of the Église Bon Nouveau Message (KCC)", "The central choir of the Church", "A book of the Bible", "The mothers' branch"], answer: 0, explain: "The doctrine of the Église Bon Nouveau Message (KCC) is “KCCism”." },
+      { type: "short", q: "Complete: “The person who believes in KCCism is called a …”", accept: ["kccist", "a kccist"], display: "Kccist", explain: "The person who believes in KCCism is called a “Kccist”." },
+      { type: "tf", q: "Radical Monotheism is the guiding principle of KCCism.", answer: true, explain: "That is correct." },
+      { type: "tf", q: "“Kccist” refers to the doctrine, and “KCCism” refers to the person.", answer: false, explain: "It is the opposite: KCCism = doctrine, Kccist = person." }
+    ]
+  },
+  /* ---------------- CHAPTER 14 ---------------- */
+  {
+    id: 14, icon: "🗓️", title: "The historical dates of the Church",
+    summary: "The major milestones in the history of the Church",
+    lesson: `<p>Here are the historical dates of the Church given in the document:</p>${timelineHTML()}`,
+    keyPoints: [
+      "01 March 1930: birth of the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac.",
+      "08 March 1955: birth of the Église Bon Nouveau Message at Camp Teli in Forakam (Seke Banza).",
+      "12 April 1958: appearance of KCC; 30 April 1980: legal recognition.",
+      "15 April 2003: Oracle of the Eternal: “Whatever miracles he performs, a man cannot be God”.",
+      "02 August 2005: the Église Universelle de Douze Apôtres (Universal Church of Twelve Apostles) becomes the Église Bon Nouveau Message (KCC).",
+      "20 March 2018: institution of the feast of the Holy Convocation (feast of the promulgation of the Law by the Eternal Himself)."
+    ],
+    understand: `<p>Learn the dates in chronological order, always linking the date to the event. Above all, remember that the Church was previously called “Église Universelle de Douze Apôtres” (Universal Church of Twelve Apostles) and that the change of name, on 02 August 2005, also changed the names of its bodies and branches.</p>`,
+    terms: [
+      { term: "Oracle", def: "Revealed divine word. (Common meaning)" },
+      { term: "Legal recognition", def: "Official recognition of an organization by the State. (Common meaning)" },
+      { term: "Holy Convocation", def: "Feast instituted on 20 March 2018, also called the feast of the promulgation of the Law by the Eternal Himself." },
+      { term: "Parish Council", def: "Spiritual body (formerly the Council of Twelve)." },
+      { term: "AFEBNM", def: "Mothers' branch (formerly AMDAESS)." },
+      { term: "JEBNM", def: "Youth branch (formerly JEUDA)." },
+      { term: "CIRPRO", def: "Local grouping of entities (formerly CIRAPRO)." },
+      { term: "UVPRO", def: "Central choir of the Church (formerly UVA)." }
+    ],
+    source: src("p. 4"),
+    questions: [
+      { type: "mcq", q: "When was the Prophet DIZOLELE MPUNGU WAFIDUSUA Isaac born?", options: ["08 March 1955", "01 March 1930", "12 April 1958", "30 April 1980"], answer: 1, explain: "The Prophet was born on 01 March 1930." },
+      { type: "mcq", q: "Where was the Église Bon Nouveau Message born on 08 March 1955?", options: ["At Camp Teli in Forakam (Seke Banza)", "In Pika Pende", "In Kinshasa", "The document does not specify"], answer: 0, explain: "At Camp Teli in Forakam (Seke Banza)." },
+      { type: "tf", q: "The appearance of KCC dates from 12 April 1958.", answer: true, explain: "That is correct: 12 April 1958." },
+      { type: "short", q: "In what year did the Church obtain its legal recognition? (4 digits)", accept: ["1980"], display: "1980", explain: "On 30 April 1980." },
+      { type: "mcq", q: "What does the Oracle of the Eternal of 15 April 2003 say?", options: ["“Whatever miracles he performs, a man cannot be God”", "“Remember the sabbath day”", "“The Eternal is One”", "“Love the Church”"], answer: 0, explain: "“Whatever miracles he performs, a man cannot be God”." },
+      { type: "mcq", q: "What was the name of the Church before 02 August 2005?", options: ["Église Universelle de Douze Apôtres (Universal Church of Twelve Apostles)", "Church of Camp Teli", "Church of the Holy Convocation", "Nkanda Church"], answer: 0, explain: "On 02 August 2005, the Église Universelle de Douze Apôtres became the Église Bon Nouveau Message (KCC)." },
+      { type: "match", q: "Match each former name to the new one.", pairs: [["Council of Twelve", "Parish Council"], ["AMDAESS", "AFEBNM"], ["JEUDA", "JEBNM"], ["UVA", "UVPRO"]], explain: "Changes of 02 August 2005: Parish Council, AFEBNM, JEBNM, CIRPRO, UVPRO." },
+      { type: "match", q: "Match each date to the event.", pairs: [["08 March 1955", "Birth of the Église Bon Nouveau Message"], ["15 April 2003", "Oracle of the Eternal to His Prophet"], ["02 August 2005", "Change of name"], ["20 March 2018", "Institution of the feast of the Holy Convocation"]], explain: "Check the timeline to review each date." },
+      { type: "mcq", q: "Which feast was instituted on 20 March 2018?", options: ["The Harvest feast", "The feast of the Holy Convocation", "The feast of Peaceful Gifts", "The Camp Teli feast"], answer: 1, explain: "The feast of the Holy Convocation, or feast of the promulgation of the Law by the Eternal Himself." }
+    ]
+  },
+  /* ---------------- CHAPTER 15 ---------------- */
+  {
+    id: 15, icon: "🎓", title: "General review", summary: "Final assessment of the training", final: true,
+    lesson: `<p>This last chapter brings together questions drawn from all the chapters of the training.</p>
+      <p>The final assessment contains ${CONFIG.FINAL_EXAM_SIZE} randomly chosen questions. It is passed with a score of ${CONFIG.PASS_SCORE} % or more.</p>`,
+    keyPoints: [
+      "Reread the “Key points” sections of each chapter before starting.",
+      "Use “My favourites” to review the notions you have marked.",
+      "You can retake the assessment as many times as needed: the questions change each time."
+    ],
+    understand: `<p>The general review lets you check that you have properly retained the whole course.</p>`,
+    terms: [], source: "Questions taken from chapters 1 to 14.", questions: []
+  }
+];
+
+return { CHAPTERS, DATES, timelineHTML };
+  }
+};
+
 const getChapter = (id) => CHAPTERS.find(c => c.id === Number(id));
 
 /* ======================================================================
@@ -1123,7 +2495,7 @@ const AuthService = {
 function parishLabel(u = AuthService.current()) {
   const p = ((u && u.parish) || "").trim();
   if (!p) return "";
-  return /^paroisse\b/i.test(p) ? p : "Paroisse de " + p;
+  return /^(paroisse|par[oó]quia|parish)\b/i.test(p) ? p : t("Paroisse de {p}", { p });
 }
 
 /* ======================================================================
@@ -1135,7 +2507,7 @@ const Certificate = {
   current() {
     const u = AuthService.current(), s = Progress.score("final");
     if (!u || !Progress.isCompleted(15) || !s) return null;
-    const want = { name: u.name.trim(), parish: parishLabel(u), score: s.best };
+    const want = { name: u.name.trim(), parish: (u.parish || "").trim(), score: s.best };
     let c = Storage.get(this.KEY, null);
     if (!c || c.name !== want.name || c.parish !== want.parish || c.score !== want.score) {
       const d = new Date(), pad = (n) => String(n).padStart(2, "0");
@@ -1148,14 +2520,14 @@ const Certificate = {
   /* Contenu du code QR : les informations du certificat, lisibles par n'importe quel lecteur de QR. */
   qrContent(c) {
     return [
-      CONFIG.APP_NAME + " — Certificat de formation",
+      CONFIG.APP_NAME + " — " + t("Certificat de formation"),
       "N° : " + c.id,
-      "Nom : " + c.name,
-      "Paroisse : " + c.parish,
-      "Niveau : " + CONFIG.CERT_LEVEL,
-      "Résultat : " + c.score + " %",
+      t("Nom") + " : " + c.name,
+      t("Paroisse") + " : " + parishLabel(c),
+      t("Niveau") + " : " + t(CONFIG.CERT_LEVEL),
+      t("Résultat") + " : " + c.score + " %",
       "Date : " + formatDate(c.date),
-      "Délivré par : " + CONFIG.CREATOR
+      t("Délivré par") + " : " + t(CONFIG.CREATOR)
     ].join("\n");
   },
   qrSVG(c) {
@@ -1170,7 +2542,7 @@ function randomCode(n) {
 }
 function formatDate(iso) {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(y, m - 1, d).toLocaleDateString(LOCALE(), { day: "numeric", month: "long", year: "numeric" });
 }
 
 /* ======================================================================
@@ -1239,19 +2611,19 @@ const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt
 const norm = (s) => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[’'`]/g, " ").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 const stripTags = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent || ""; };
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function fmtDate(iso) { if (!iso) return "—"; try { return new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return iso; } }
+function fmtDate(iso) { if (!iso) return "—"; try { return new Date(iso).toLocaleString(LOCALE(), { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return iso; } }
 function toast(msg) {
-  const z = document.getElementById("toasts"); const t = document.createElement("div");
-  t.className = "toast"; t.textContent = msg; z.appendChild(t);
+  const z = document.getElementById("toasts"); const el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg; z.appendChild(el);
   while (z.children.length > 2) z.firstChild.remove();   // jamais plus de 2 messages à la fois
-  setTimeout(() => t.remove(), 2600);
+  setTimeout(() => el.remove(), 2600);
 }
 /* Fenêtre de confirmation intégrée (remplace confirm(), souvent bloqué dans les APK/WebView) */
 function askConfirm(message, okLabel) {
   return new Promise(resolve => {
     const o = document.createElement("div"); o.className = "modal-bg";
     o.innerHTML = `<div class="modal" role="alertdialog" aria-modal="true"><p>${esc(message)}</p>
-      <div class="btn-row inline"><button class="btn btn-ghost" data-r="0">Annuler</button><button class="btn btn-royal" data-r="1">${esc(okLabel || "Confirmer")}</button></div></div>`;
+      <div class="btn-row inline"><button class="btn btn-ghost" data-r="0">${t("Annuler")}</button><button class="btn btn-royal" data-r="1">${esc(okLabel || t("Confirmer"))}</button></div></div>`;
     o.addEventListener("click", e => { const b = e.target.closest("[data-r]"); if (b || e.target === o) { o.remove(); resolve(!!(b && b.dataset.r === "1")); } });
     document.body.appendChild(o); o.querySelector('[data-r="1"]').focus();
   });
@@ -1304,7 +2676,7 @@ function menuLink(item, activeKey, cls) {
   const cur = item.key === activeKey ? ' aria-current="page"' : "";
   const href = item.chapter ? `#/chapter/${item.chapter}` : item.href;
   const act = item.chapter ? ` data-action="open-chapter" data-id="${item.chapter}"` : "";
-  return `<a class="${cls}" href="${href}"${act}${cur}><span class="mi">${item.icon}</span><span>${item.label}</span>${cls === "" ? '<span class="chev">›</span>' : ""}</a>`;
+  return `<a class="${cls}" href="${href}"${act}${cur}><span class="mi">${item.icon}</span><span>${t(item.label)}</span>${cls === "" ? '<span class="chev">›</span>' : ""}</a>`;
 }
 
 /* Structure commune des pages après connexion */
@@ -1312,36 +2684,36 @@ function shell(name, title, content) {
   const active = ACTIVE[name] || name;
   const isHome = name === "home";
   return `<div class="layout">
-  <aside class="sidebar" aria-label="Menu principal">
+  <aside class="sidebar" aria-label="${t("Menu principal")}">
     <a class="sb-brand" href="#/home">${logoSVG(42)}<span><b>JE SUIS KCCiste</b><small>FORMATION</small></span></a>
     <nav>${MENU.map(m => menuLink(m, active, "sb-link")).join("")}</nav>
-    <div class="sb-foot">${esc(parishLabel())}<br>Créateur : ${CONFIG.CREATOR}</div>
+    <div class="sb-foot">${esc(parishLabel())}<br>${t("Créateur")} : ${t(CONFIG.CREATOR)}</div>
   </aside>
   <div class="main">
     <header class="topbar">
       ${isHome
         ? `<a class="tb-brand" href="#/home">${logoSVG(36)}<span><b>JE SUIS KCCiste</b><small>FORMATION</small></span></a><span class="spacer"></span>`
-        : `<button class="icon-btn" data-action="back" aria-label="Retour">←</button><div class="tb-title">${esc(title)}</div>`}
-      <a class="icon-btn" href="#/search" aria-label="Rechercher dans la formation">🔎</a>
-      <a class="icon-btn" href="#/favorites" aria-label="Mes favoris">⭐</a>
+        : `<button class="icon-btn" data-action="back" aria-label="${t("Retour")}">←</button><div class="tb-title">${esc(title)}</div>`}
+      <a class="icon-btn" href="#/search" aria-label="${t("Rechercher dans la formation")}">🔎</a>
+      <a class="icon-btn" href="#/favorites" aria-label="${t("Mes favoris")}">⭐</a>
     </header>
     <main id="view" class="view fade" tabindex="-1">${content}${footer()}</main>
   </div>
   <nav class="bottomnav" aria-label="Navigation">
-    ${NAV.map(n => `<a class="bn-item" href="${n.href}"${n.key === active ? ' aria-current="page"' : ""}><span class="ico" aria-hidden="true">${n.icon}</span>${n.label}</a>`).join("")}
+    ${NAV.map(n => `<a class="bn-item" href="${n.href}"${n.key === active ? ' aria-current="page"' : ""}><span class="ico" aria-hidden="true">${n.icon}</span>${t(n.label)}</a>`).join("")}
   </nav>
 </div>`;
 }
 function footer() {
   return `<footer class="app-footer">
     <div class="fb">JE SUIS KCCiste – FORMATION</div>
-    <div>Formation pour les néophytes · ${esc(parishLabel())}</div>
-    <div>Créateur : ${CONFIG.CREATOR} · WhatsApp : <a href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></div>
+    <div>${t("Formation pour les néophytes")} · ${esc(parishLabel())}</div>
+    <div>${t("Créateur")} : ${t(CONFIG.CREATOR)} · WhatsApp : <a href="${waLink(t(CONFIG.MSG_CONTACT))}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></div>
     <div>© ${CONFIG.YEAR}</div>
   </footer>`;
 }
 function fsFooter() {
-  return `<div class="fs-foot">${CONFIG.CHURCH} · © ${CONFIG.YEAR}<br>Créateur : ${CONFIG.CREATOR} · <a href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></div>`;
+  return `<div class="fs-foot">${t(CONFIG.CHURCH)} · © ${CONFIG.YEAR}<br>${t("Créateur")} : ${t(CONFIG.CREATOR)} · <a href="${waLink(t(CONFIG.MSG_ACCESS))}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></div>`;
 }
 
 /* ======================================================================
@@ -1349,20 +2721,21 @@ function fsFooter() {
    ====================================================================== */
 function viewAccess() {
   return `<div class="fullscreen"><div class="fs-inner fade">
+    ${langSwitch("fs-lang")}
     <div class="brand">${logoSVG(78)}</div>
     <h1 class="fs-title">JE SUIS KCCiste<span>FORMATION</span></h1>
-    <p class="fs-sub">Formation doctrinale pour les néophytes<br>${CONFIG.CHURCH}</p>
-    <p class="fs-intro">« Cette application est destinée à accompagner les néophytes dans l'apprentissage progressif des bases de la doctrine KCC. »</p>
+    <p class="fs-sub">${t("Formation doctrinale pour les néophytes")}<br>${t(CONFIG.CHURCH)}</p>
+    <p class="fs-intro">« ${t("Cette application est destinée à accompagner les néophytes dans l'apprentissage progressif des bases de la doctrine KCC.")} »</p>
     <section class="glass">
-      <h2>🔐 ACCÈS À LA FORMATION</h2>
-      <p>Pour accéder à cette formation, vous devez être membre du groupe <strong>${CONFIG.GROUP}</strong>.</p>
-      <p>Si vous êtes membre, continuez vers la formation.</p>
-      <p>Si vous souhaitez obtenir les informations d'accès, contactez directement le créateur sur WhatsApp.</p>
+      <h2>🔐 ${t("ACCÈS À LA FORMATION")}</h2>
+      <p>${t("Pour accéder à cette formation, vous devez être membre du groupe {g}.", { g: `<strong>${CONFIG.GROUP}</strong>` })}</p>
+      <p>${t("Si vous êtes membre, continuez vers la formation.")}</p>
+      <p>${t("Si vous souhaitez obtenir les informations d'accès, contactez directement le créateur sur WhatsApp.")}</p>
       <div class="btn-row">
-        <a class="btn btn-gold btn-block" href="#/member">JE SUIS MEMBRE</a>
-        <a class="btn btn-wa btn-block" href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener">💬 ÉCRIRE SUR WHATSAPP</a>
+        <a class="btn btn-gold btn-block" href="#/member">${t("JE SUIS MEMBRE")}</a>
+        <a class="btn btn-wa btn-block" href="${waLink(t(CONFIG.MSG_ACCESS))}" target="_blank" rel="noopener">💬 ${t("ÉCRIRE SUR WHATSAPP")}</a>
       </div>
-      <p class="small" style="margin-top:12px">Vous pouvez nous contacter directement sur WhatsApp pour obtenir les informations d'accès.</p>
+      <p class="small" style="margin-top:12px">${t("Vous pouvez nous contacter directement sur WhatsApp pour obtenir les informations d'accès.")}</p>
     </section>
     ${fsFooter()}
   </div></div>`;
@@ -1370,20 +2743,20 @@ function viewAccess() {
 
 function viewMember() {
   return `<div class="fullscreen"><div class="fs-inner fade">
-    <a class="back-link" href="#/access">← Retour</a>
+    <a class="back-link" href="#/access">← ${t("Retour")}</a>
     <div class="brand">${logoSVG(58)}</div>
-    <h1 class="fs-title">ACCÈS MEMBRE</h1>
-    <p class="fs-sub">Indiquez votre nom, votre paroisse et le code d'accès communiqué aux membres du groupe Je suis KCCiste.</p>
+    <h1 class="fs-title">${t("ACCÈS MEMBRE")}</h1>
+    <p class="fs-sub">${t("Indiquez votre nom, votre paroisse et le code d'accès communiqué aux membres du groupe Je suis KCCiste.")}</p>
     <form id="member-form" class="glass" style="margin-top:20px" novalidate>
-      <label class="field"><span>Nom complet</span>
-        <input class="input" name="name" autocomplete="name" required minlength="3" maxlength="60" placeholder="Ex. : Jean Mavungu"></label>
-      <label class="field"><span>Paroisse</span>
-        <input class="input" name="parish" required maxlength="60" placeholder="Ex. : Pika Pende"></label>
-      <label class="field"><span>Code d'accès</span>
-        <input class="input" name="code" required autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Code communiqué au groupe"></label>
+      <label class="field"><span>${t("Nom complet")}</span>
+        <input class="input" name="name" autocomplete="name" required minlength="3" maxlength="60" placeholder="${t("Ex. :")} Jean Mavungu"></label>
+      <label class="field"><span>${t("Paroisse")}</span>
+        <input class="input" name="parish" required maxlength="60" placeholder="${t("Ex. :")} Pika Pende"></label>
+      <label class="field"><span>${t("Code d'accès")}</span>
+        <input class="input" name="code" required autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${t("Code communiqué au groupe")}"></label>
       <div id="form-error" aria-live="assertive"></div>
-      <button class="btn btn-gold btn-block" type="submit" style="margin-top:16px">CONTINUER</button>
-      <p class="small" style="margin-top:12px">Vos informations restent uniquement sur cet appareil. Aucun mot de passe n'est demandé.</p>
+      <button class="btn btn-gold btn-block" type="submit" style="margin-top:16px">${t("CONTINUER")}</button>
+      <p class="small" style="margin-top:12px">${t("Vos informations restent uniquement sur cet appareil. Aucun mot de passe n'est demandé.")}</p>
     </form>
     ${fsFooter()}
   </div></div>`;
@@ -1394,11 +2767,11 @@ function viewWelcome() {
   return `<div class="fullscreen"><div class="fs-inner fade" style="justify-content:center">
     <div class="brand">${logoSVG(72)}</div>
     <p class="fs-sub" style="margin:0">${CONFIG.GREETING} ${esc(u.name)}</p>
-    <h1 class="fs-title" style="margin-top:8px">Bienvenue dans<br>JE SUIS KCCiste – FORMATION</h1>
+    <h1 class="fs-title" style="margin-top:8px">${t("Bienvenue dans")}<br>JE SUIS KCCiste – FORMATION</h1>
     <div class="glass" style="margin-top:22px">
-      <p>Cette plateforme a été conçue pour accompagner les néophytes dans leur découverte progressive des bases de l'enseignement doctrinal KCC.</p>
-      <p>Prenez le temps de lire chaque chapitre, de comprendre les notions importantes et de répondre aux questions proposées.</p>
-      <div class="btn-row"><a class="btn btn-gold btn-block" href="#/home">COMMENCER LA FORMATION</a></div>
+      <p>${t("Cette plateforme a été conçue pour accompagner les néophytes dans leur découverte progressive des bases de l'enseignement doctrinal KCC.")}</p>
+      <p>${t("Prenez le temps de lire chaque chapitre, de comprendre les notions importantes et de répondre aux questions proposées.")}</p>
+      <div class="btn-row"><a class="btn btn-gold btn-block" href="#/home">${t("COMMENCER LA FORMATION")}</a></div>
     </div>
     ${fsFooter()}
   </div></div>`;
@@ -1422,56 +2795,56 @@ function viewHome() {
   return `
   <section class="hello">
     <div class="hi">${CONFIG.GREETING} ${esc(u.name)} 👋</div>
-    <h1>Bienvenue dans votre formation</h1>
-    <p>Parcours des néophytes – ${esc(parishLabel())}</p>
+    <h1>${t("Bienvenue dans votre formation")}</h1>
+    <p>${t("Parcours des néophytes")} – ${esc(parishLabel())}</p>
   </section>
 
   <section class="card card-dark">
-    <div class="eyebrow">Ma progression</div>
-    <div class="prog-top"><span class="big">${st.pct} %</span><span class="muted small">${st.done} / ${st.total} chapitres</span></div>
+    <div class="eyebrow">${t("Ma progression")}</div>
+    <div class="prog-top"><span class="big">${st.pct} %</span><span class="muted small">${st.done} / ${st.total} ${t("chapitres")}</span></div>
     ${bar(st.pct)}
-    <div class="prog-stats muted"><span>Chapitres terminés : <b>${st.done} / ${st.total}</b></span><span>Score moyen : <b>${st.avg} %</b></span></div>
+    <div class="prog-stats muted"><span>${t("Chapitres terminés")} : <b>${st.done} / ${st.total}</b></span><span>${t("Score moyen")} : <b>${st.avg} %</b></span></div>
   </section>
 
   ${next ? `<section class="card">
-    <div class="eyebrow">Continuer la formation</div>
+    <div class="eyebrow">${t("Continuer la formation")}</div>
     <div class="continue">
       <div class="num">${next.id}</div>
-      <div class="txt"><small class="muted">${Progress.data.lastChapter === next.id ? "Dernier chapitre consulté" : "Prochaine étape"}</small><b>${esc(next.title)}</b></div>
+      <div class="txt"><small class="muted">${Progress.data.lastChapter === next.id ? t("Dernier chapitre consulté") : t("Prochaine étape")}</small><b>${esc(next.title)}</b></div>
     </div>
-    <div class="btn-row"><a class="btn btn-royal btn-block" href="#/chapter/${next.id}" data-action="continue">CONTINUER</a></div>
-  </section>` : `<section class="card"><div class="eyebrow">Parcours terminé 🎓</div><p>Vous avez terminé tous les chapitres.</p><a class="btn btn-gold btn-block" href="#/finished">Voir mon bilan</a></section>`}
+    <div class="btn-row"><a class="btn btn-royal btn-block" href="#/chapter/${next.id}" data-action="continue">${t("CONTINUER")}</a></div>
+  </section>` : `<section class="card"><div class="eyebrow">${t("Parcours terminé")} 🎓</div><p>${t("Vous avez terminé tous les chapitres.")}</p><a class="btn btn-gold btn-block" href="#/finished">${t("Voir mon bilan")}</a></section>`}
 
-  <a class="searchbar" href="#/search"><span aria-hidden="true">🔎</span> Rechercher dans la formation</a>
-  <div class="tiles">${tiles.map(t => `<a class="tile" href="${t[3]}"><span class="ic" aria-hidden="true">${t[0]}</span><b>${t[1]}</b><span>${t[2]}</span></a>`).join("")}</div>`;
+  <a class="searchbar" href="#/search"><span aria-hidden="true">🔎</span> ${t("Rechercher dans la formation")}</a>
+  <div class="tiles">${tiles.map(x => `<a class="tile" href="${x[3]}"><span class="ic" aria-hidden="true">${x[0]}</span><b>${t(x[1])}</b><span>${t(x[2])}</span></a>`).join("")}</div>`;
 }
 
 function chapterItem(c) {
   const done = Progress.isCompleted(c.id), open = Progress.isUnlocked(c.id), s = Progress.score(c.final ? "final" : c.id);
   const state = done ? "done" : open ? "" : "locked";
-  const meta = done ? `Terminé${s ? " · meilleur score " + s.best + " %" : ""}` : open ? (Progress.data.read[c.id] ? "En cours" : "Disponible") : `Terminez le chapitre ${c.id - 1} pour débloquer`;
-  const pill = done ? `<span class="pill pill-ok">Réviser</span>` : open ? `<span class="pill pill-go">Étudier</span>` : `<span class="pill pill-lock">🔒</span>`;
+  const meta = done ? t("Terminé") + (s ? " · " + t("meilleur score") + " " + s.best + " %" : "") : open ? (Progress.data.read[c.id] ? t("En cours") : t("Disponible")) : t("Terminez le chapitre {n} pour débloquer", { n: c.id - 1 });
+  const pill = done ? `<span class="pill pill-ok">${t("Réviser")}</span>` : open ? `<span class="pill pill-go">${t("Étudier")}</span>` : `<span class="pill pill-lock">🔒</span>`;
   return `<a class="ch-item ${state}" href="#/chapter/${c.id}" data-action="open-chapter" data-id="${c.id}">
     <span class="n">${done ? "✓" : c.id}</span>
-    <span class="t"><b>${esc(c.title)}</b><small>Chapitre ${c.id} · ${meta}</small></span>${pill}</a>`;
+    <span class="t"><b>${esc(c.title)}</b><small>${t("Chapitre")} ${c.id} · ${meta}</small></span>${pill}</a>`;
 }
 
 function viewCourses() {
   const st = Progress.stats();
-  return `<div class="page-head"><h1>📖 La formation</h1><p>${st.done} / ${st.total} chapitres terminés. Chaque chapitre se débloque après le précédent ; les chapitres terminés restent accessibles avec « Réviser ».</p></div>
+  return `<div class="page-head"><h1>📖 ${t("La formation")}</h1><p>${t("{d} / {n} chapitres terminés. Chaque chapitre se débloque après le précédent ; les chapitres terminés restent accessibles avec « Réviser ».", { d: st.done, n: st.total })}</p></div>
   ${bar(st.pct)}<div style="height:16px"></div>
   <div class="ch-list">${CHAPTERS.map(chapterItem).join("")}</div>`;
 }
 
 function lockedView(id) {
-  return `<div class="empty card"><div class="e-ic">🔒</div><h2 style="margin:8px 0">Chapitre verrouillé</h2>
-    <p>Terminez d'abord le chapitre ${id - 1} pour accéder à ce contenu.</p>
-    <a class="btn btn-royal" href="#/courses">Voir les chapitres</a></div>`;
+  return `<div class="empty card"><div class="e-ic">🔒</div><h2 style="margin:8px 0">${t("Chapitre verrouillé")}</h2>
+    <p>${t("Terminez d'abord le chapitre {n} pour accéder à ce contenu.", { n: id - 1 })}</p>
+    <a class="btn btn-royal" href="#/courses">${t("Voir les chapitres")}</a></div>`;
 }
 
 function viewChapter(param) {
   const c = getChapter(param);
-  if (!c) return `<div class="empty">Chapitre introuvable.</div>`;
+  if (!c) return `<div class="empty">${t("Chapitre introuvable.")}</div>`;
   if (!Progress.isUnlocked(c.id)) return lockedView(c.id);
   Progress.markRead(c.id);
   const favKey = "c:" + c.id, done = Progress.isCompleted(c.id);
@@ -1480,48 +2853,48 @@ function viewChapter(param) {
 
   let cta;
   if (c.final) {
-    cta = `<p>Évaluation finale : jusqu'à ${CONFIG.FINAL_EXAM_SIZE} questions tirées de tous les chapitres.</p>
-      ${s ? `<p class="muted small">Meilleur score : ${s.best} % · ${s.attempts} tentative(s)</p>` : ""}
-      <a class="btn btn-gold btn-block" href="#/quiz/final">Commencer l'évaluation finale</a>`;
+    cta = `<p>${t("Évaluation finale : jusqu'à {n} questions tirées de tous les chapitres.", { n: CONFIG.FINAL_EXAM_SIZE })}</p>
+      ${s ? `<p class="muted small">${t("Meilleur score")} : ${s.best} % · ${s.attempts} ${t("tentative(s)")}</p>` : ""}
+      <a class="btn btn-gold btn-block" href="#/quiz/final">${t("Commencer l'évaluation finale")}</a>`;
   } else if (c.questions.length) {
-    cta = `<p>${c.questions.length} questions · réussite à partir de ${CONFIG.PASS_SCORE} %</p>
-      ${s ? `<p class="muted small">Meilleur score : ${s.best} % · dernier : ${s.last} %</p>` : ""}
-      <a class="btn btn-gold btn-block" href="#/quiz/${c.id}">${s ? "Refaire le test" : "Commencer le test"}</a>`;
+    cta = `<p>${c.questions.length} ${t("questions")} · ${t("réussite à partir de {p} %", { p: CONFIG.PASS_SCORE })}</p>
+      ${s ? `<p class="muted small">${t("Meilleur score")} : ${s.best} % · ${t("dernier")} : ${s.last} %</p>` : ""}
+      <a class="btn btn-gold btn-block" href="#/quiz/${c.id}">${s ? t("Refaire le test") : t("Commencer le test")}</a>`;
   } else {
-    cta = `<p class="muted">Le test de ce chapitre sera ajouté lorsque le contenu doctrinal sera complété.</p>
-      ${done ? `<p><span class="pill pill-ok">✓ Chapitre terminé</span></p>` : `<button class="btn btn-royal btn-block" data-action="complete-chapter" data-id="${c.id}">✓ Marquer comme lu et terminé</button>`}`;
+    cta = `<p class="muted">${t("Le test de ce chapitre sera ajouté lorsque le contenu doctrinal sera complété.")}</p>
+      ${done ? `<p><span class="pill pill-ok">✓ ${t("Chapitre terminé")}</span></p>` : `<button class="btn btn-royal btn-block" data-action="complete-chapter" data-id="${c.id}">✓ ${t("Marquer comme lu et terminé")}</button>`}`;
   }
 
   return `
   <section class="ch-hero">
-    <div class="eyebrow">Chapitre ${c.id} / ${CHAPTERS.length} ${done ? "· ✓ Terminé" : ""}</div>
+    <div class="eyebrow">${t("Chapitre")} ${c.id} / ${CHAPTERS.length} ${done ? "· ✓ " + t("Terminé") : ""}</div>
     <h1>${c.icon} ${esc(c.title)}</h1>
     <p style="color:#C9D4EC;margin-top:6px">${esc(c.summary)}</p>
-    <div class="fav"><button class="fav-btn" data-action="fav-chapter" data-id="${c.id}" aria-pressed="${Favs.has(favKey)}" aria-label="Ajouter le chapitre aux favoris">${Favs.has(favKey) ? "★" : "☆"}</button></div>
+    <div class="fav"><button class="fav-btn" data-action="fav-chapter" data-id="${c.id}" aria-pressed="${Favs.has(favKey)}" aria-label="${t("Ajouter le chapitre aux favoris")}">${Favs.has(favKey) ? "★" : "☆"}</button></div>
   </section>
 
-  <section class="sec"><div class="sec-h">📖 LEÇON</div><div class="lesson">${c.lesson}</div></section>
+  <section class="sec"><div class="sec-h">📖 ${t("LEÇON")}</div><div class="lesson">${c.lesson}</div></section>
 
-  <section class="sec"><div class="sec-h">💡 À RETENIR</div>
+  <section class="sec"><div class="sec-h">💡 ${t("À RETENIR")}</div>
     ${c.keyPoints.length ? `<ul class="keypoints">${c.keyPoints.map((k, i) => {
       const key = `n:${c.id}:${i}`, on = Favs.has(key);
-      return `<li><span class="chk">✓</span><span class="kp-t">${esc(k)}</span><button class="star-sm" data-action="fav-note" data-id="${c.id}" data-i="${i}" aria-pressed="${on}" aria-label="Ajouter cette notion aux favoris">${on ? "★" : "☆"}</button></li>`;
-    }).join("")}</ul>` : pend("Points essentiels")}
+      return `<li><span class="chk">✓</span><span class="kp-t">${esc(k)}</span><button class="star-sm" data-action="fav-note" data-id="${c.id}" data-i="${i}" aria-pressed="${on}" aria-label="${t("Ajouter cette notion aux favoris")}">${on ? "★" : "☆"}</button></li>`;
+    }).join("")}</ul>` : pend(t("Points essentiels"))}
   </section>
 
-  <section class="sec"><div class="sec-h">🔎 COMPRENDRE</div><div>${c.understand}</div></section>
+  <section class="sec"><div class="sec-h">🔎 ${t("COMPRENDRE")}</div><div>${c.understand}</div></section>
 
-  ${c.terms.length ? `<section class="sec"><div class="sec-h">📚 MOTS IMPORTANTS</div><div class="terms">
+  ${c.terms.length ? `<section class="sec"><div class="sec-h">📚 ${t("MOTS IMPORTANTS")}</div><div class="terms">
     ${c.terms.map(t => `<div class="term"><b>${esc(t.term)}</b><span>${t.def === PENDING ? `<em>${PENDING}</em>` : esc(t.def)}</span></div>`).join("")}
   </div></section>` : ""}
 
-  <section class="sec"><div class="sec-h">🗂️ SOURCE DU COURS</div><p class="source">${esc(c.source)}</p></section>
+  <section class="sec"><div class="sec-h">🗂️ ${t("SOURCE DU COURS")}</div><p class="source">${esc(c.source)}</p></section>
 
-  <section class="sec test-cta"><div class="sec-h">❓ ${c.final ? "ÉVALUATION FINALE" : "TEST DU CHAPITRE"}</div>${cta}</section>
+  <section class="sec test-cta"><div class="sec-h">❓ ${c.final ? t("ÉVALUATION FINALE") : t("TEST DU CHAPITRE")}</div>${cta}</section>
 
   <div class="ch-nav">
-    ${prev ? `<a class="btn btn-ghost" href="#/chapter/${prev.id}">← Chapitre ${prev.id}</a>` : ""}
-    ${next ? `<a class="btn btn-ghost" href="#/chapter/${next.id}" data-action="open-chapter" data-id="${next.id}">Chapitre ${next.id} ${Progress.isUnlocked(next.id) ? "→" : "🔒"}</a>` : ""}
+    ${prev ? `<a class="btn btn-ghost" href="#/chapter/${prev.id}">← ${t("Chapitre")} ${prev.id}</a>` : ""}
+    ${next ? `<a class="btn btn-ghost" href="#/chapter/${next.id}" data-action="open-chapter" data-id="${next.id}">${t("Chapitre")} ${next.id} ${Progress.isUnlocked(next.id) ? "→" : "🔒"}</a>` : ""}
   </div>`;
 }
 
@@ -1545,20 +2918,20 @@ const Quiz = {
   },
   box() { return document.getElementById("quiz-box"); },
   current() { return this.state.qs[this.state.i]; },
-  typeLabel(t) { return { mcq: "QCM", tf: "Vrai / Faux", short: "Question courte", match: "Association" }[t]; },
+  typeLabel(k) { return t({ mcq: "QCM", tf: "Vrai / Faux", short: "Question courte", match: "Association" }[k]); },
   renderQuestion() {
     const s = this.state, q = this.current(), n = s.qs.length;
     let body = "";
     if (q.type === "mcq") body = `<div class="opts">${q._opts.map((o, i) => `<button class="opt" data-action="qa" data-i="${i}"><span class="l">${"ABCDEF"[i]}</span><span>${esc(o.t)}</span></button>`).join("")}</div>`;
-    if (q.type === "tf") body = `<div class="opts tf"><button class="opt" data-action="qa" data-v="true">Vrai</button><button class="opt" data-action="qa" data-v="false">Faux</button></div>`;
-    if (q.type === "short") body = `<label class="sr-only" for="q-short">Votre réponse</label><input id="q-short" class="input" autocomplete="off" placeholder="Votre réponse…"><div class="btn-row"><button class="btn btn-royal btn-block" data-action="q-short">Valider</button></div>`;
+    if (q.type === "tf") body = `<div class="opts tf"><button class="opt" data-action="qa" data-v="true">${t("Vrai")}</button><button class="opt" data-action="qa" data-v="false">${t("Faux")}</button></div>`;
+    if (q.type === "short") body = `<label class="sr-only" for="q-short">${t("Votre réponse")}</label><input id="q-short" class="input" autocomplete="off" placeholder="${t("Votre réponse")}…"><div class="btn-row"><button class="btn btn-royal btn-block" data-action="q-short">${t("Valider")}</button></div>`;
     if (q.type === "match") body = q.pairs.map((p, i) => `<div class="match-row" id="mr${i}"><b>${esc(p[0])}</b>
-        <select class="input" id="ms${i}" aria-label="Associer ${esc(p[0])}"><option value="">— Choisir —</option>${q._rights.map(r => `<option>${esc(r)}</option>`).join("")}</select></div>`).join("")
-        + `<div class="btn-row"><button class="btn btn-royal btn-block" data-action="q-match">Valider</button></div>`;
+        <select class="input" id="ms${i}" aria-label="${t("Associer")} ${esc(p[0])}"><option value="">— ${t("Choisir")} —</option>${q._rights.map(r => `<option>${esc(r)}</option>`).join("")}</select></div>`).join("")
+        + `<div class="btn-row"><button class="btn btn-royal btn-block" data-action="q-match">${t("Valider")}</button></div>`;
     this.box().innerHTML = `
-      <div class="q-top"><span>Question ${s.i + 1} / ${n}</span><span>${this.typeLabel(q.type)}</span></div>
+      <div class="q-top"><span>${t("Question")} ${s.i + 1} / ${n}</span><span>${this.typeLabel(q.type)}</span></div>
       ${bar(Math.round(s.i / n * 100), "sm")}
-      ${s.key === "final" ? `<span class="q-tag">Chapitre ${q.ch}</span>` : ""}
+      ${s.key === "final" ? `<span class="q-tag">${t("Chapitre")} ${q.ch}</span>` : ""}
       <h2 class="q-text">${esc(q.q)}</h2>${body}<div id="q-feedback"></div>`;
     s.answered = false;
   },
@@ -1568,10 +2941,10 @@ const Quiz = {
     const last = s.i === s.qs.length - 1;
     const fb = document.getElementById("q-feedback");
     fb.innerHTML = `<div class="feedback ${ok ? "ok" : "ko"}">
-      <div class="fb-title">${ok ? "✅ Bonne réponse" : "❌ Mauvaise réponse"}</div>
-      ${ok ? "" : `<div class="fb-ans"><strong>Bonne réponse :</strong> ${correctText}</div>`}
+      <div class="fb-title">${ok ? "✅ " + t("Bonne réponse") : "❌ " + t("Mauvaise réponse")}</div>
+      ${ok ? "" : `<div class="fb-ans"><strong>${t("Bonne réponse")} :</strong> ${correctText}</div>`}
       <p>${esc(q.explain || "")}</p>
-      <button class="btn btn-gold btn-block" data-action="q-next">${last ? "Voir le résultat" : "Question suivante →"}</button></div>`;
+      <button class="btn btn-gold btn-block" data-action="q-next">${last ? t("Voir le résultat") : t("Question suivante") + " →"}</button></div>`;
     const btn = fb.querySelector("button"); btn.focus({ preventScroll: true });
     fb.scrollIntoView({ behavior: "smooth", block: "nearest" });
   },
@@ -1587,22 +2960,22 @@ const Quiz = {
     const chId = s.key === "final" ? 15 : Number(s.key);
     let firstDone = false;
     if (passed) firstDone = Progress.complete(chId);
-    if (firstDone) toast("✓ Chapitre terminé");
-    if (newBest) setTimeout(() => toast("🏆 Nouveau meilleur score"), firstDone ? 700 : 0);
-    const msg = pct >= 90 ? "Excellent travail !" : pct >= 70 ? "Très bonne progression." : pct >= CONFIG.PASS_SCORE ? "Bonne progression, continuez ainsi." : `Relisez le chapitre puis réessayez (réussite à partir de ${CONFIG.PASS_SCORE} %).`;
+    if (firstDone) toast("✓ " + t("Chapitre terminé"));
+    if (newBest) setTimeout(() => toast("🏆 " + t("Nouveau meilleur score")), firstDone ? 700 : 0);
+    const msg = pct >= 90 ? t("Excellent travail !") : pct >= 70 ? t("Très bonne progression.") : pct >= CONFIG.PASS_SCORE ? t("Bonne progression, continuez ainsi.") : t("Relisez le chapitre puis réessayez (réussite à partir de {p} %).", { p: CONFIG.PASS_SCORE });
     const next = getChapter(chId + 1), best = Progress.score(s.key).best, all = Progress.stats().allDone;
     this.box().innerHTML = `<div class="result fade">
-      <div class="eyebrow">RÉSULTAT</div>
+      <div class="eyebrow">${t("RÉSULTAT")}</div>
       <div class="score">${s.score} / ${n}</div>
-      <div class="pct">${pct} %${passed ? " · réussi" : ""}</div>
+      <div class="pct">${pct} %${passed ? " · " + t("réussi") : ""}</div>
       <p class="msg">${msg}</p>
-      <p class="muted small">Meilleur score : ${best} %</p>
+      <p class="muted small">${t("Meilleur score")} : ${best} %</p>
       <div class="btn-row">
-        <button class="btn btn-ghost btn-block" data-action="q-retry">REFAIRE LE TEST</button>
-        ${passed && s.key === "final" ? `<a class="btn btn-gold btn-block" href="#/certificate">🎓 Voir mon certificat</a>` : ""}
-        ${all && s.key === "final" ? `<a class="btn btn-ghost btn-block" href="#/finished">Voir mon bilan de formation</a>` : ""}
-        ${next && Progress.isUnlocked(next.id) && s.key !== "final" ? `<a class="btn btn-gold btn-block" href="#/chapter/${next.id}">CHAPITRE SUIVANT →</a>` : ""}
-        <a class="btn btn-ghost btn-block" href="#/chapter/${chId}">Revoir le chapitre</a>
+        <button class="btn btn-ghost btn-block" data-action="q-retry">${t("REFAIRE LE TEST")}</button>
+        ${passed && s.key === "final" ? `<a class="btn btn-gold btn-block" href="#/certificate">🎓 ${t("Voir mon certificat")}</a>` : ""}
+        ${all && s.key === "final" ? `<a class="btn btn-ghost btn-block" href="#/finished">${t("Voir mon bilan de formation")}</a>` : ""}
+        ${next && Progress.isUnlocked(next.id) && s.key !== "final" ? `<a class="btn btn-gold btn-block" href="#/chapter/${next.id}">${t("CHAPITRE SUIVANT")} →</a>` : ""}
+        <a class="btn btn-ghost btn-block" href="#/chapter/${chId}">${t("Revoir le chapitre")}</a>
       </div></div>`;
   }
 };
@@ -1610,82 +2983,82 @@ const Quiz = {
 function viewQuiz(param) {
   const isFinal = param === "final";
   const c = isFinal ? getChapter(15) : getChapter(param);
-  if (!c) return `<div class="empty">Test introuvable.</div>`;
+  if (!c) return `<div class="empty">${t("Test introuvable.")}</div>`;
   if (!Progress.isUnlocked(c.id)) return lockedView(c.id);
-  if (!isFinal && !c.questions.length) return `<div class="empty card"><div class="e-ic">📝</div><p>Aucun test pour ce chapitre pour le moment.</p><a class="btn btn-royal" href="#/chapter/${c.id}">Retour au chapitre</a></div>`;
+  if (!isFinal && !c.questions.length) return `<div class="empty card"><div class="e-ic">📝</div><p>${t("Aucun test pour ce chapitre pour le moment.")}</p><a class="btn btn-royal" href="#/chapter/${c.id}">${t("Retour au chapitre")}</a></div>`;
   Quiz.start(isFinal ? "final" : c.id);
   setTimeout(() => Quiz.renderQuestion(), 0);
-  return `<div class="page-head"><div class="eyebrow">${isFinal ? "RÉVISION GÉNÉRALE" : "TEST DU CHAPITRE " + c.id}</div><h1>${esc(isFinal ? "Évaluation finale" : c.title)}</h1></div>
+  return `<div class="page-head"><div class="eyebrow">${isFinal ? t("RÉVISION GÉNÉRALE") : t("TEST DU CHAPITRE") + " " + c.id}</div><h1>${esc(isFinal ? t("Évaluation finale") : c.title)}</h1></div>
     <section class="card" id="quiz-box" aria-live="polite"></section>`;
 }
 
 function viewTests() {
   const withQ = CHAPTERS.filter(c => c.questions.length);
   const finalOpen = Progress.isUnlocked(15), fs = Progress.score("final");
-  return `<div class="page-head"><h1>❓ QCM</h1><p>Testez vos connaissances chapitre par chapitre. Un test se débloque avec son chapitre.</p></div>
+  return `<div class="page-head"><h1>❓ ${t("QCM")}</h1><p>${t("Testez vos connaissances chapitre par chapitre. Un test se débloque avec son chapitre.")}</p></div>
   <div class="ch-list">${withQ.map(c => {
     const open = Progress.isUnlocked(c.id), s = Progress.score(c.id);
     return `<a class="ch-item ${open ? (Progress.isCompleted(c.id) ? "done" : "") : "locked"}" href="${open ? "#/quiz/" + c.id : "#/tests"}" ${open ? "" : `data-action="locked" data-id="${c.id}"`}>
-      <span class="n">${c.id}</span><span class="t"><b>${esc(c.title)}</b><small>${c.questions.length} questions${s ? " · meilleur " + s.best + " %" : ""}</small></span>
-      <span class="pill ${open ? "pill-go" : "pill-lock"}">${open ? (s ? "Refaire" : "Commencer") : "🔒"}</span></a>`;
+      <span class="n">${c.id}</span><span class="t"><b>${esc(c.title)}</b><small>${c.questions.length} ${t("questions")}${s ? " · " + t("meilleur") + " " + s.best + " %" : ""}</small></span>
+      <span class="pill ${open ? "pill-go" : "pill-lock"}">${open ? (s ? t("Refaire") : t("Commencer")) : "🔒"}</span></a>`;
   }).join("")}</div>
-  <div class="section-title">ÉVALUATION FINALE</div>
-  <section class="card card-dark"><div class="eyebrow">🎓 Révision générale</div>
-    <p>Jusqu'à ${CONFIG.FINAL_EXAM_SIZE} questions tirées de l'ensemble des chapitres.</p>
-    ${fs ? `<p class="muted small">Meilleur score : ${fs.best} %</p>` : ""}
-    ${finalOpen ? `<a class="btn btn-gold btn-block" href="#/quiz/final">Commencer</a>` : `<p class="muted small">🔒 Disponible après le chapitre 14.</p>`}
+  <div class="section-title">${t("ÉVALUATION FINALE")}</div>
+  <section class="card card-dark"><div class="eyebrow">🎓 ${t("Révision générale")}</div>
+    <p>${t("Jusqu'à {n} questions tirées de l'ensemble des chapitres.", { n: CONFIG.FINAL_EXAM_SIZE })}</p>
+    ${fs ? `<p class="muted small">${t("Meilleur score")} : ${fs.best} %</p>` : ""}
+    ${finalOpen ? `<a class="btn btn-gold btn-block" href="#/quiz/final">${t("Commencer")}</a>` : `<p class="muted small">🔒 ${t("Disponible après le chapitre 14.")}</p>`}
   </section>`;
 }
 
 function viewProgress() {
   const st = Progress.stats();
-  return `<div class="page-head"><h1>📊 Ma progression</h1></div>
-  <section class="card card-dark"><div class="eyebrow">Progression générale</div>
+  return `<div class="page-head"><h1>📊 ${t("Ma progression")}</h1></div>
+  <section class="card card-dark"><div class="eyebrow">${t("Progression générale")}</div>
     <div class="prog-top"><span class="big">${st.pct} %</span></div>${bar(st.pct)}</section>
   <div class="stats">
-    <div class="stat"><small>Chapitres terminés</small><b>${st.done} / ${st.total}</b></div>
-    <div class="stat"><small>Tests effectués</small><b>${st.tests}</b></div>
-    <div class="stat"><small>Meilleur score</small><b>${st.best} %</b></div>
-    <div class="stat"><small>Score moyen</small><b>${st.avg} %</b></div>
-    <div class="stat" style="grid-column:span 2"><small>Dernière activité</small><b style="font-size:1rem;font-family:var(--sans)">${fmtDate(st.last)}</b></div>
+    <div class="stat"><small>${t("Chapitres terminés")}</small><b>${st.done} / ${st.total}</b></div>
+    <div class="stat"><small>${t("Tests effectués")}</small><b>${st.tests}</b></div>
+    <div class="stat"><small>${t("Meilleur score")}</small><b>${st.best} %</b></div>
+    <div class="stat"><small>${t("Score moyen")}</small><b>${st.avg} %</b></div>
+    <div class="stat" style="grid-column:span 2"><small>${t("Dernière activité")}</small><b style="font-size:1rem;font-family:var(--sans)">${fmtDate(st.last)}</b></div>
   </div>
-  ${st.allDone ? `<div class="btn-row"><a class="btn btn-gold btn-block" href="#/finished">🎓 Voir mon bilan de formation</a></div>` : ""}
-  <div class="section-title">DÉTAIL PAR CHAPITRE</div>
+  ${st.allDone ? `<div class="btn-row"><a class="btn btn-gold btn-block" href="#/finished">🎓 ${t("Voir mon bilan de formation")}</a></div>` : ""}
+  <div class="section-title">${t("DÉTAIL PAR CHAPITRE")}</div>
   <div class="ch-list">${CHAPTERS.map(chapterItem).join("")}</div>
-  <div class="btn-row"><button class="btn btn-danger btn-block" data-action="reset-progress">Réinitialiser ma progression</button></div>`;
+  <div class="btn-row"><button class="btn btn-danger btn-block" data-action="reset-progress">${t("Réinitialiser ma progression")}</button></div>`;
 }
 
 function viewDates() {
-  return `<div class="page-head"><h1>📜 Dates historiques</h1><p>Les principales dates de l'${CONFIG.CHURCH}, selon le document de formation.</p></div>
+  return `<div class="page-head"><h1>📜 ${t("Dates historiques")}</h1><p>${t("Les principales dates de l'{c}, selon le document de formation.", { c: t(CONFIG.CHURCH) })}</p></div>
   ${timelineHTML()}`;
 }
 
 function viewPractices() {
-  const items = [[7, "La Première Purification et la Parole de la Purification"], [8, "La Parole de la Première Onction"], [2, "Les Dix Commandements de l'Éternel Dieu"], [3, "Les Sept Commandements de l'Église"], [4, "La Profession de Foi"], [6, "Les Sacrements de l'Église"]];
-  return `<div class="page-head"><h1>🙏 Paroles et pratiques</h1><p>Accès direct aux paroles et pratiques présentées dans la formation.</p></div>
+  const items = [7, 8, 2, 3, 4, 6].map(id => [id, getChapter(id).title]);
+  return `<div class="page-head"><h1>🙏 ${t("Paroles et pratiques")}</h1><p>${t("Accès direct aux paroles et pratiques présentées dans la formation.")}</p></div>
   <div class="ch-list">${items.map(([id, label]) => {
     const open = Progress.isUnlocked(id);
-    return `<a class="ch-item ${open ? "" : "locked"}" href="#/chapter/${id}" data-action="open-chapter" data-id="${id}"><span class="n">${id}</span><span class="t"><b>${label}</b><small>Chapitre ${id}</small></span><span class="pill ${open ? "pill-go" : "pill-lock"}">${open ? "Ouvrir" : "🔒"}</span></a>`;
+    return `<a class="ch-item ${open ? "" : "locked"}" href="#/chapter/${id}" data-action="open-chapter" data-id="${id}"><span class="n">${id}</span><span class="t"><b>${esc(label)}</b><small>${t("Chapitre")} ${id}</small></span><span class="pill ${open ? "pill-go" : "pill-lock"}">${open ? t("Ouvrir") : "🔒"}</span></a>`;
   }).join("")}</div>`;
 }
 
 function viewRevision() {
   const done = CHAPTERS.filter(c => Progress.isCompleted(c.id) && !c.final);
-  return `<div class="page-head"><h1>📚 Révision</h1><p>Revoyez librement les chapitres terminés et leurs points essentiels.</p></div>
-  <section class="card card-dark"><div class="eyebrow">🎓 Révision générale</div><p>Évaluation finale de ${CONFIG.FINAL_EXAM_SIZE} questions maximum.</p>
-    ${Progress.isUnlocked(15) ? `<a class="btn btn-gold btn-block" href="#/quiz/final">Commencer l'évaluation</a>` : `<p class="muted small">🔒 Disponible après le chapitre 14.</p>`}</section>
-  ${done.length ? done.map(c => `<section class="sec"><div class="sec-h">${c.icon} CHAPITRE ${c.id}</div><h3 style="margin-bottom:8px">${esc(c.title)}</h3>
-      ${c.keyPoints.length ? `<ul class="keypoints">${c.keyPoints.map(k => `<li><span class="chk">✓</span><span class="kp-t">${esc(k)}</span></li>`).join("")}</ul>` : `<p class="muted small">Points essentiels à compléter.</p>`}
-      <div class="btn-row inline"><a class="btn btn-ghost btn-sm" href="#/chapter/${c.id}">Réviser le chapitre</a>${c.questions.length ? `<a class="btn btn-ghost btn-sm" href="#/quiz/${c.id}">Refaire le test</a>` : ""}</div></section>`).join("")
-    : `<div class="empty card"><div class="e-ic">📚</div><p>Terminez un premier chapitre pour le retrouver ici.</p><a class="btn btn-royal" href="#/courses">Commencer</a></div>`}`;
+  return `<div class="page-head"><h1>📚 ${t("Révision")}</h1><p>${t("Revoyez librement les chapitres terminés et leurs points essentiels.")}</p></div>
+  <section class="card card-dark"><div class="eyebrow">🎓 ${t("Révision générale")}</div><p>${t("Évaluation finale de {n} questions maximum.", { n: CONFIG.FINAL_EXAM_SIZE })}</p>
+    ${Progress.isUnlocked(15) ? `<a class="btn btn-gold btn-block" href="#/quiz/final">${t("Commencer l'évaluation")}</a>` : `<p class="muted small">🔒 ${t("Disponible après le chapitre 14.")}</p>`}</section>
+  ${done.length ? done.map(c => `<section class="sec"><div class="sec-h">${c.icon} ${t("CHAPITRE")} ${c.id}</div><h3 style="margin-bottom:8px">${esc(c.title)}</h3>
+      ${c.keyPoints.length ? `<ul class="keypoints">${c.keyPoints.map(k => `<li><span class="chk">✓</span><span class="kp-t">${esc(k)}</span></li>`).join("")}</ul>` : `<p class="muted small">${t("Points essentiels à compléter.")}</p>`}
+      <div class="btn-row inline"><a class="btn btn-ghost btn-sm" href="#/chapter/${c.id}">${t("Réviser le chapitre")}</a>${c.questions.length ? `<a class="btn btn-ghost btn-sm" href="#/quiz/${c.id}">${t("Refaire le test")}</a>` : ""}</div></section>`).join("")
+    : `<div class="empty card"><div class="e-ic">📚</div><p>${t("Terminez un premier chapitre pour le retrouver ici.")}</p><a class="btn btn-royal" href="#/courses">${t("Commencer")}</a></div>`}`;
 }
 
 function viewFavorites() {
   const list = Favs.list;
-  return `<div class="page-head"><h1>⭐ Mes favoris</h1><p>Chapitres et notions que vous avez marqués avec ☆.</p></div>
+  return `<div class="page-head"><h1>⭐ ${t("Mes favoris")}</h1><p>${t("Chapitres et notions que vous avez marqués avec ☆.")}</p></div>
   ${list.length ? `<div class="results">${list.map(f => `<a class="res" href="#/chapter/${f.chapterId}" data-action="open-chapter" data-id="${f.chapterId}">
-      <b>${f.type === "chapter" ? "📖 " : "💡 "}${esc(f.label)}</b><p>Chapitre ${f.chapterId}${f.type === "note" ? " · " + esc(getChapter(f.chapterId).title) : ""}</p></a>`).join("")}</div>`
-    : `<div class="empty card"><div class="e-ic">☆</div><p>Aucun favori pour le moment.<br>Touchez ☆ sur un chapitre ou une notion « À retenir ».</p></div>`}`;
+      <b>${f.type === "chapter" ? "📖 " : "💡 "}${esc(favLabel(f))}</b><p>${t("Chapitre")} ${f.chapterId}${f.type === "note" ? " · " + esc(getChapter(f.chapterId).title) : ""}</p></a>`).join("")}</div>`
+    : `<div class="empty card"><div class="e-ic">☆</div><p>${t("Aucun favori pour le moment.")}<br>${t("Touchez ☆ sur un chapitre ou une notion « À retenir ».")}</p></div>`}`;
 }
 
 /* ---------- Recherche ---------- */
@@ -1698,7 +3071,7 @@ function buildIndex() {
     d.querySelectorAll("p, li, h3").forEach(el => { const t = el.textContent.trim(); if (t && t !== PENDING) segs.push(t); });
     segs.forEach(s => { if (s && !s.includes(PENDING)) idx.push({ chapter: c, text: s, n: norm(s + " " + c.title) }); });
   });
-  DATES.forEach(d => idx.push({ chapter: getChapter(14), text: d.date + " — " + d.title, n: norm("dates historiques " + d.date + " " + d.title), isDate: true }));
+  DATES.forEach(d => idx.push({ chapter: getChapter(14), text: d.date + " — " + d.title, n: norm(t("Dates historiques") + " " + d.date + " " + d.title), isDate: true }));
   return idx;
 }
 const ACC = { a: "[aàâä]", e: "[eéèêë]", i: "[iîï]", o: "[oôö]", u: "[uùûü]", c: "[cç]" };
@@ -1713,47 +3086,47 @@ function highlight(text, words) {
 }
 function searchResults(query) {
   const q = norm(query);
-  if (q.length < 2) return `<p class="muted small">Exemples : commandements, profession de foi, KCC, purification, onction, dates…</p>`;
+  if (q.length < 2) return `<p class="muted small">${t("Exemples : commandements, profession de foi, KCC, purification, onction, dates…")}</p>`;
   SEARCH_INDEX = SEARCH_INDEX || buildIndex();
   const words = q.split(" ");
   const hits = SEARCH_INDEX.filter(e => words.every(w => e.n.includes(w)));
-  if (!hits.length) return `<div class="empty"><div class="e-ic">🔎</div><p>Aucun résultat pour « ${esc(query)} ».</p></div>`;
+  if (!hits.length) return `<div class="empty"><div class="e-ic">🔎</div><p>${t("Aucun résultat pour « {q} ».", { q: esc(query) })}</p></div>`;
   const seen = new Set(), rows = [];
   hits.forEach(h => { const k = h.chapter.id + "|" + h.text; if (!seen.has(k)) { seen.add(k); rows.push(h); } });
-  return `<p class="muted small">${rows.length} résultat(s)</p>` + rows.slice(0, 40).map(h => {
+  return `<p class="muted small">${rows.length} ${t("résultat(s)")}</p>` + rows.slice(0, 40).map(h => {
     const href = h.isDate ? "#/dates" : "#/chapter/" + h.chapter.id;
     const act = h.isDate ? "" : ` data-action="open-chapter" data-id="${h.chapter.id}"`;
-    return `<a class="res" href="${href}"${act}><b>${h.isDate ? "📜 Dates historiques" : "Chapitre " + h.chapter.id + " · " + esc(h.chapter.title)}</b><p>${highlight(h.text, words)}</p></a>`;
+    return `<a class="res" href="${href}"${act}><b>${h.isDate ? "📜 " + t("Dates historiques") : t("Chapitre") + " " + h.chapter.id + " · " + esc(h.chapter.title)}</b><p>${highlight(h.text, words)}</p></a>`;
   }).join("");
 }
 function viewSearch() {
   setTimeout(() => { const i = document.getElementById("search-input"); if (i) i.focus(); }, 50);
-  return `<div class="page-head"><h1>🔎 Rechercher dans la formation</h1></div>
-  <label class="sr-only" for="search-input">Rechercher</label>
-  <input id="search-input" class="input" type="search" placeholder="Ex. : commandements, onction, dates…" autocomplete="off">
+  return `<div class="page-head"><h1>🔎 ${t("Rechercher dans la formation")}</h1></div>
+  <label class="sr-only" for="search-input">${t("Rechercher")}</label>
+  <input id="search-input" class="input" type="search" placeholder="${t("Ex. : commandements, onction, dates…")}" autocomplete="off">
   <div id="search-results" class="results">${searchResults("")}</div>`;
 }
 
 function viewAbout() {
-  return `<div class="page-head"><h1>À propos de l'application</h1></div>
+  return `<div class="page-head"><h1>${t("À propos de l'application")}</h1></div>
   <section class="card" style="text-align:center">
     <div style="display:flex;justify-content:center;margin-bottom:10px">${logoSVG(64)}</div>
-    <p style="font-family:var(--serif);font-size:1.05rem">JE SUIS KCCiste – FORMATION est une application destinée à accompagner les néophytes dans l'apprentissage progressif des bases doctrinales de l'${CONFIG.CHURCH}.</p>
-    <p class="muted small">${CONFIG.CHURCH} · Version 1.1 · © ${CONFIG.YEAR}</p>
+    <p style="font-family:var(--serif);font-size:1.05rem">${t("JE SUIS KCCiste – FORMATION est une application destinée à accompagner les néophytes dans l'apprentissage progressif des bases doctrinales de l'{c}.", { c: t(CONFIG.CHURCH) })}</p>
+    <p class="muted small">${t(CONFIG.CHURCH)} · Version 1.1 · © ${CONFIG.YEAR}</p>
   </section>
-  <section class="card"><p class="small muted" style="margin:0">Créateur de l'application</p><p style="margin:2px 0 10px;font-weight:600">${CONFIG.CREATOR}</p>
-    <p class="small muted" style="margin:0">Contact WhatsApp</p><p style="margin:2px 0 0"><a href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></p></section>
-  <section class="card"><p class="small muted" style="margin:0">Données</p><p class="small">Votre nom, votre progression et vos favoris sont enregistrés uniquement sur cet appareil. Cette version ne comporte pas de compte en ligne.</p></section>`;
+  <section class="card"><p class="small muted" style="margin:0">${t("Créateur de l'application")}</p><p style="margin:2px 0 10px;font-weight:600">${t(CONFIG.CREATOR)}</p>
+    <p class="small muted" style="margin:0">${t("Contact WhatsApp")}</p><p style="margin:2px 0 0"><a href="${waLink(t(CONFIG.MSG_CONTACT))}" target="_blank" rel="noopener">${CONFIG.WHATSAPP_DISPLAY}</a></p></section>
+  <section class="card"><p class="small muted" style="margin:0">${t("Données")}</p><p class="small">${t("Votre nom, votre progression et vos favoris sont enregistrés uniquement sur cet appareil. Cette version ne comporte pas de compte en ligne.")}</p></section>`;
 }
 
 function viewContact() {
-  return `<div class="page-head"><h1>💬 Contact</h1><p>Pour toute question sur la formation ou l'accès à l'application.</p></div>
+  return `<div class="page-head"><h1>💬 ${t("Contact")}</h1><p>${t("Pour toute question sur la formation ou l'accès à l'application.")}</p></div>
   <section class="card">
-    <p class="small muted" style="margin:0">Créateur</p><p style="margin:2px 0 4px;font-weight:600">${CONFIG.CREATOR}</p>
+    <p class="small muted" style="margin:0">${t("Créateur")}</p><p style="margin:2px 0 4px;font-weight:600">${t(CONFIG.CREATOR)}</p>
     <p class="contact-num">WhatsApp : ${CONFIG.WHATSAPP_DISPLAY}</p>
     <div class="btn-row">
-      <a class="btn btn-gold btn-block" href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">💬 Contacter sur WhatsApp</a>
-      <a class="btn btn-ghost btn-block" href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener">Demander les informations d'accès</a>
+      <a class="btn btn-gold btn-block" href="${waLink(t(CONFIG.MSG_CONTACT))}" target="_blank" rel="noopener">💬 ${t("Contacter sur WhatsApp")}</a>
+      <a class="btn btn-ghost btn-block" href="${waLink(t(CONFIG.MSG_ACCESS))}" target="_blank" rel="noopener">${t("Demander les informations d'accès")}</a>
     </div>
   </section>`;
 }
@@ -1762,8 +3135,9 @@ function viewMenu() {
   const u = AuthService.current();
   return `<section class="card profile"><div class="avatar">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</div>
     <div><b>${esc(u.name)}</b><div class="muted small">${esc(u.parish)}</div></div></section>
-  <nav class="menu-list" aria-label="Menu">${MENU.map(m => menuLink(m, "", "")).join("")}</nav>
-  <div class="btn-row"><button class="btn btn-ghost btn-block" data-action="logout">Changer de profil</button></div>`;
+  <section class="card lang-card"><div class="eyebrow">🌐 ${t("Langue")}</div>${langSwitch("menu-lang")}</section>
+  <nav class="menu-list" aria-label="${t("Menu")}">${MENU.map(m => menuLink(m, "", "")).join("")}</nav>
+  <div class="btn-row"><button class="btn btn-ghost btn-block" data-action="logout">${t("Changer de profil")}</button></div>`;
 }
 
 /* Cadre, coins dorés et sceau du certificat (dessinés en SVG, sans croix ni verset). */
@@ -1806,43 +3180,43 @@ function certSealSVG(score) {
     <circle cx="120" cy="88" r="52" fill="none" stroke="#D4AF37" stroke-width="1.5"/>
     <text x="120" y="66" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#F5D76E">KCCiste</text>
     <text x="120" y="96" text-anchor="middle" font-family="Georgia,serif" font-size="27" font-weight="700" fill="#FFFFFF">${score} %</text>
-    <text x="120" y="113" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="9.5" font-weight="700" letter-spacing="2" fill="#F5D76E">RÉUSSI</text>
-    <text x="120" y="127" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="#D4AF37">${esc(CONFIG.CERT_LEVEL.toUpperCase())}</text>
+    <text x="120" y="113" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="9.5" font-weight="700" letter-spacing="2" fill="#F5D76E">${t("RÉUSSI")}</text>
+    <text x="120" y="127" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="#D4AF37">${esc(t(CONFIG.CERT_LEVEL).toUpperCase())}</text>
   </svg>`;
 }
 
 function viewCertificate() {
   const c = Certificate.current();
-  if (!c) return `<div class="empty card"><div class="e-ic">🎓</div><p>Votre certificat sera disponible dès que vous aurez réussi l'évaluation finale (à partir de ${CONFIG.PASS_SCORE} %).</p><a class="btn btn-royal" href="#/tests">Voir les QCM</a></div>`;
-  return `<div class="page-head"><h1>🎓 Mon certificat</h1><p>Enregistrez-le en PDF pour l'imprimer ou le partager.</p></div>
+  if (!c) return `<div class="empty card"><div class="e-ic">🎓</div><p>${t("Votre certificat sera disponible dès que vous aurez réussi l'évaluation finale (à partir de {p} %).", { p: CONFIG.PASS_SCORE })}</p><a class="btn btn-royal" href="#/tests">${t("Voir les QCM")}</a></div>`;
+  return `<div class="page-head"><h1>🎓 ${t("Mon certificat")}</h1><p>${t("Partagez-le, enregistrez-le dans le téléphone ou en PDF.")}</p></div>
   <div class="cert-wrap" id="cert-wrap"><div class="cert" id="cert">
     ${certFrameSVG()}
     <div class="cert-mark">${logoSVG(430)}</div>
     <div class="cert-in">
       <div class="c-logo">${logoSVG(66)}</div>
       <div class="c-kicker">JE SUIS KCCiste – FORMATION</div>
-      <div class="c-title">CERTIFICAT</div>
-      <div class="c-sub"><i></i>DE FIN DE FORMATION<i></i></div>
-      <div class="c-level">${esc(CONFIG.CERT_LEVEL.toUpperCase())}</div>
-      <div class="c-to">Ce certificat est fièrement décerné à</div>
+      <div class="c-title">${t("CERTIFICAT")}</div>
+      <div class="c-sub"><i></i>${t("DE FIN DE FORMATION")}<i></i></div>
+      <div class="c-level">${esc(t(CONFIG.CERT_LEVEL).toUpperCase())}</div>
+      <div class="c-to">${t("Ce certificat est fièrement décerné à")}</div>
       <div class="c-name">${esc(c.name)}</div>
-      <div class="c-parish">${esc(c.parish)}</div>
-      <p class="c-text">qui ${esc(CONFIG.CERT_TEXT)}</p>
+      <div class="c-parish">${esc(parishLabel(c))}</div>
+      <p class="c-text">${esc(t(CONFIG.CERT_TEXT))}</p>
     </div>
     <div class="cert-foot">
-      <div class="c-sign"><span class="c-date">Fait le ${esc(formatDate(c.date))}</span><b>${esc(CONFIG.CREATOR)}</b><small>Formateur</small></div>
+      <div class="c-sign"><span class="c-date">${t("Fait le {d}", { d: esc(formatDate(c.date)) })}</span><b>${esc(t(CONFIG.CREATOR))}</b><small>${t("Formateur")}</small></div>
       <div class="c-seal">${certSealSVG(c.score)}</div>
-      <div class="c-qr"><span class="qr-box">${Certificate.qrSVG(c)}</span><span class="c-num">N° ${esc(c.id)}</span><span class="c-scan">Scannez pour lire le certificat</span></div>
+      <div class="c-qr"><span class="qr-box">${Certificate.qrSVG(c)}</span><span class="c-num">N° ${esc(c.id)}</span><span class="c-scan">${t("Scannez pour lire le certificat")}</span></div>
     </div>
   </div></div>
   <div class="btn-row">
-    <button class="btn btn-whatsapp btn-block" data-action="share-cert" data-target="whatsapp">💬 PARTAGER SUR WHATSAPP</button>
-    <button class="btn btn-fb btn-block" data-action="share-cert" data-target="facebook">📘 PARTAGER SUR FACEBOOK</button>
-    <button class="btn btn-royal btn-block" data-action="share-cert" data-target="save">💾 ENREGISTRER DANS LE TÉLÉPHONE</button>
-    <button class="btn btn-ghost btn-block" data-action="share-cert" data-target="">📤 AUTRES APPLICATIONS</button>
-    <button class="btn btn-gold btn-block" data-action="print-cert">📄 ENREGISTRER EN PDF</button>
+    <button class="btn btn-whatsapp btn-block" data-action="share-cert" data-target="whatsapp">💬 ${t("PARTAGER SUR WHATSAPP")}</button>
+    <button class="btn btn-fb btn-block" data-action="share-cert" data-target="facebook">📘 ${t("PARTAGER SUR FACEBOOK")}</button>
+    <button class="btn btn-royal btn-block" data-action="share-cert" data-target="save">💾 ${t("ENREGISTRER DANS LE TÉLÉPHONE")}</button>
+    <button class="btn btn-ghost btn-block" data-action="share-cert" data-target="">📤 ${t("AUTRES APPLICATIONS")}</button>
+    <button class="btn btn-gold btn-block" data-action="print-cert">📄 ${t("ENREGISTRER EN PDF")}</button>
   </div>
-  <p class="muted small">« Enregistrer dans le téléphone » place l'image du certificat dans la galerie (dossier Images › KCCiste). Pour le PDF, choisissez « Enregistrer au format PDF » dans la fenêtre qui s'ouvre.</p>`;
+  <p class="muted small">${t("« Enregistrer dans le téléphone » place l'image du certificat dans la galerie (dossier Images › KCCiste). Pour le PDF, choisissez « Enregistrer au format PDF » dans la fenêtre qui s'ouvre.")}</p>`;
 }
 /* Image JPEG du certificat (2246 × 1588 px), pour l'enregistrer ou la partager.
    Le certificat est copié dans un SVG <foreignObject> avec ses styles, puis dessiné sur un canvas. */
@@ -1870,14 +3244,14 @@ function certificateImage() {
 function certFileName() { const c = Certificate.current(); return "Certificat-KCCiste-" + (c ? c.id : "") + ".jpg"; }
 /* target : "whatsapp", "facebook", "" (choix libre) ou "save" (enregistrer dans le téléphone) */
 async function shareCertificate(target) {
-  toast("⏳ Préparation de l'image…");
+  toast("⏳ " + t("Préparation de l'image…"));
   let data;
   try { data = await certificateImage(); }
-  catch (e) { toast("Impossible de créer l'image. Utilisez « Enregistrer en PDF »."); return; }
+  catch (e) { toast(t("Impossible de créer l'image. Utilisez « Enregistrer en PDF ».")); return; }
   const b64 = data.split(",")[1], name = certFileName();
   if (window.KCCAndroid && KCCAndroid.saveImage) {
-    if (target === "save") KCCAndroid.saveImage(b64, name, "✓ Certificat enregistré dans la galerie (Images › KCCiste)", "Impossible d'enregistrer l'image dans le téléphone.");
-    else KCCAndroid.shareImage(b64, name, target, "Mon certificat " + CONFIG.APP_NAME, "Application introuvable : choisissez une autre application.");
+    if (target === "save") KCCAndroid.saveImage(b64, name, "✓ " + t("Certificat enregistré dans la galerie (Images › KCCiste)"), t("Impossible d'enregistrer l'image dans le téléphone."));
+    else KCCAndroid.shareImage(b64, name, target, t("Mon certificat") + " " + CONFIG.APP_NAME, t("Application introuvable : choisissez une autre application."));
     return;
   }
   /* Hors de l'application Android (navigateur) : partage du système ou téléchargement. */
@@ -1899,19 +3273,19 @@ window.addEventListener("resize", fitCertificate);
 
 function viewFinished() {
   const st = Progress.stats();
-  if (!st.allDone) return `<div class="empty card"><div class="e-ic">🎓</div><p>Il vous reste ${st.total - st.done} chapitre(s) à terminer.</p><a class="btn btn-royal" href="#/courses">Continuer la formation</a></div>`;
-  return `<section class="card card-dark final-hero fade"><div class="medal">🎓</div><h1>FORMATION TERMINÉE</h1>
-    <p style="font-family:var(--serif);font-size:1.08rem">Félicitations ! Vous avez terminé le parcours de formation.</p></section>
+  if (!st.allDone) return `<div class="empty card"><div class="e-ic">🎓</div><p>${t("Il vous reste {n} chapitre(s) à terminer.", { n: st.total - st.done })}</p><a class="btn btn-royal" href="#/courses">${t("Continuer la formation")}</a></div>`;
+  return `<section class="card card-dark final-hero fade"><div class="medal">🎓</div><h1>${t("FORMATION TERMINÉE")}</h1>
+    <p style="font-family:var(--serif);font-size:1.08rem">${t("Félicitations ! Vous avez terminé le parcours de formation.")}</p></section>
   <div class="stats">
-    <div class="stat"><small>Chapitres terminés</small><b>${st.done} / ${st.total}</b></div>
-    <div class="stat"><small>Score moyen</small><b>${st.avg} %</b></div>
-    <div class="stat"><small>Meilleur score</small><b>${st.best} %</b></div>
+    <div class="stat"><small>${t("Chapitres terminés")}</small><b>${st.done} / ${st.total}</b></div>
+    <div class="stat"><small>${t("Score moyen")}</small><b>${st.avg} %</b></div>
+    <div class="stat"><small>${t("Meilleur score")}</small><b>${st.best} %</b></div>
   </div>
   <div class="btn-row">
-    ${Certificate.current() ? `<a class="btn btn-gold btn-block" href="#/certificate">🎓 MON CERTIFICAT</a>` : ""}
-    <a class="btn btn-royal btn-block" href="#/courses">REVOIR LA FORMATION</a>
-    <a class="btn btn-ghost btn-block" href="#/quiz/final">REFAIRE L'ÉVALUATION</a>
-    <a class="btn btn-ghost btn-block" href="${waLink(CONFIG.MSG_CONTACT)}" target="_blank" rel="noopener">💬 CONTACTER LE PRÉDICATEUR</a>
+    ${Certificate.current() ? `<a class="btn btn-gold btn-block" href="#/certificate">🎓 ${t("MON CERTIFICAT")}</a>` : ""}
+    <a class="btn btn-royal btn-block" href="#/courses">${t("REVOIR LA FORMATION")}</a>
+    <a class="btn btn-ghost btn-block" href="#/quiz/final">${t("REFAIRE L'ÉVALUATION")}</a>
+    <a class="btn btn-ghost btn-block" href="${waLink(t(CONFIG.MSG_CONTACT))}" target="_blank" rel="noopener">💬 ${t("CONTACTER LE PRÉDICATEUR")}</a>
   </div>`;
 }
 
@@ -1940,9 +3314,9 @@ function render() {
   if (!VIEWS[name]) return replaceRoute("home");
 
   const content = VIEWS[name](param);
-  let title = TITLES[name] || "";
-  if (name === "chapter" && getChapter(param)) title = "Chapitre " + param;
-  if (name === "quiz") title = param === "final" ? "Évaluation finale" : "Test · Chapitre " + param;
+  let title = TITLES[name] ? t(TITLES[name]) : "";
+  if (name === "chapter" && getChapter(param)) title = t("Chapitre") + " " + param;
+  if (name === "quiz") title = param === "final" ? t("Évaluation finale") : t("Test") + " · " + t("Chapitre") + " " + param;
   app.innerHTML = shell(name, title, content);
   if (name === "certificate") fitCertificate();
   document.title = (title ? title + " · " : "") + CONFIG.APP_NAME;
@@ -1967,33 +3341,34 @@ const Actions = {
       copy.querySelectorAll(`[href="#${old}"]`).forEach(el => el.setAttribute("href", `#${g.id}`));
     });
     box.replaceChildren(copy);
-    if (window.KCCAndroid && KCCAndroid.printCertificate) KCCAndroid.printCertificate("Certificat " + (Certificate.current() || {}).id);
+    if (window.KCCAndroid && KCCAndroid.printCertificate) KCCAndroid.printCertificate(t("Certificat") + " " + (Certificate.current() || {}).id);
     else window.print();
   },
   back() { if (history.length > 1) history.back(); else go("home"); },
-  continue(el) { toast("📚 Formation continuée"); go(el.getAttribute("href").replace("#/", "")); },
+  continue(el) { toast("📚 " + t("Formation continuée")); go(el.getAttribute("href").replace("#/", "")); },
+  lang(el) { setLang(el.dataset.l); },
   "open-chapter"(el) {
     const id = Number(el.dataset.id);
     if (Progress.isUnlocked(id)) go("chapter/" + id);
-    else toast(`🔒 Terminez d'abord le chapitre ${id - 1}`);
+    else toast("🔒 " + t("Terminez d'abord le chapitre {n}", { n: id - 1 }));
   },
-  locked(el) { toast(`🔒 Terminez d'abord le chapitre ${Number(el.dataset.id) - 1}`); },
+  locked(el) { toast("🔒 " + t("Terminez d'abord le chapitre {n}", { n: Number(el.dataset.id) - 1 })); },
   "complete-chapter"(el) {
     const id = Number(el.dataset.id);
-    if (Progress.complete(id)) toast("✓ Chapitre terminé");
+    if (Progress.complete(id)) toast("✓ " + t("Chapitre terminé"));
     render();
   },
   "fav-chapter"(el) {
     const c = getChapter(el.dataset.id);
     const on = Favs.toggle({ key: "c:" + c.id, type: "chapter", chapterId: c.id, label: c.title });
     el.setAttribute("aria-pressed", on); el.textContent = on ? "★" : "☆";
-    toast(on ? "⭐ Ajouté aux favoris" : "Retiré des favoris");
+    toast(on ? "⭐ " + t("Ajouté aux favoris") : t("Retiré des favoris"));
   },
   "fav-note"(el) {
     const c = getChapter(el.dataset.id), i = Number(el.dataset.i);
     const on = Favs.toggle({ key: `n:${c.id}:${i}`, type: "note", chapterId: c.id, label: c.keyPoints[i] });
     el.setAttribute("aria-pressed", on); el.textContent = on ? "★" : "☆";
-    toast(on ? "⭐ Notion ajoutée aux favoris" : "Retiré des favoris");
+    toast(on ? "⭐ " + t("Notion ajoutée aux favoris") : t("Retiré des favoris"));
   },
   qa(el) {
     if (Quiz.state.answered) return;
@@ -2008,14 +3383,14 @@ const Actions = {
       const v = el.dataset.v === "true", ok = v === q.answer;
       buttons.forEach(b => { if ((b.dataset.v === "true") === q.answer) b.classList.add("correct"); });
       if (!ok) el.classList.add("wrong");
-      Quiz.answer(ok, q.answer ? "Vrai" : "Faux");
+      Quiz.answer(ok, q.answer ? t("Vrai") : t("Faux"));
     }
   },
   "q-short"() {
     if (Quiz.state.answered) return;
     const q = Quiz.current(), input = document.getElementById("q-short");
     const val = norm(input.value);
-    if (!val) { toast("Veuillez saisir une réponse"); input.focus(); return; }
+    if (!val) { toast(t("Veuillez saisir une réponse")); input.focus(); return; }
     const ok = q.accept.some(a => norm(a) === val);
     input.style.borderColor = ok ? "var(--ok)" : "var(--err)";
     Quiz.answer(ok, esc(q.display));
@@ -2024,7 +3399,7 @@ const Actions = {
     if (Quiz.state.answered) return;
     const q = Quiz.current();
     const vals = q.pairs.map((p, i) => document.getElementById("ms" + i).value);
-    if (vals.some(v => !v)) { toast("Associez chaque élément avant de valider"); return; }
+    if (vals.some(v => !v)) { toast(t("Associez chaque élément avant de valider")); return; }
     let ok = true;
     q.pairs.forEach((p, i) => { const good = vals[i] === p[1]; if (!good) ok = false; document.getElementById("mr" + i).classList.add(good ? "ok" : "ko"); });
     Quiz.answer(ok, "<br>" + q.pairs.map(p => `${esc(p[0])} → ${esc(p[1])}`).join("<br>"));
@@ -2032,10 +3407,10 @@ const Actions = {
   "q-next"() { Quiz.next(); },
   "q-retry"() { render(); },
   "reset-progress"() {
-    askConfirm("Voulez-vous vraiment effacer toute votre progression ? Cette action est définitive.", "Effacer").then(ok => { if (ok) { Progress.reset(); toast("Progression réinitialisée"); render(); } });
+    askConfirm(t("Voulez-vous vraiment effacer toute votre progression ? Cette action est définitive."), t("Effacer")).then(ok => { if (ok) { Progress.reset(); toast(t("Progression réinitialisée")); render(); } });
   },
   logout() {
-    askConfirm("Changer de profil ? Votre progression reste enregistrée sur cet appareil.", "Changer").then(ok => { if (ok) { AuthService.logout(); replaceRoute("access"); } });
+    askConfirm(t("Changer de profil ? Votre progression reste enregistrée sur cet appareil."), t("Changer")).then(ok => { if (ok) { AuthService.logout(); replaceRoute("access"); } });
   }
 };
 
@@ -2052,14 +3427,14 @@ document.addEventListener("submit", (e) => {
   const f = new FormData(e.target);
   const name = String(f.get("name") || "").trim(), parish = String(f.get("parish") || "").trim();
   const err = [];
-  if (name.length < 3) err.push("Veuillez indiquer votre nom complet (au moins 3 caractères).");
-  if (!parish) err.push("Veuillez indiquer votre paroisse.");
+  if (name.length < 3) err.push(t("Veuillez indiquer votre nom complet (au moins 3 caractères)."));
+  if (!parish) err.push(t("Veuillez indiquer votre paroisse."));
   const code = String(f.get("code") || "");
-  if (!code.trim()) err.push("Veuillez saisir le code d'accès.");
-  else if (!AuthService.checkCode(code)) err.push("Code d'accès incorrect. Vérifiez l'orthographe ou contactez le Prédicateur sur WhatsApp.");
+  if (!code.trim()) err.push(t("Veuillez saisir le code d'accès."));
+  else if (!AuthService.checkCode(code)) err.push(t("Code d'accès incorrect. Vérifiez l'orthographe ou contactez le Prédicateur sur WhatsApp."));
   const box = document.getElementById("form-error");
   if (err.length) {
-    box.innerHTML = `<div class="form-error">${err.map(esc).join("<br>")}<br><a href="${waLink(CONFIG.MSG_ACCESS)}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">💬 Demander le code sur WhatsApp</a></div>`;
+    box.innerHTML = `<div class="form-error">${err.map(esc).join("<br>")}<br><a href="${waLink(t(CONFIG.MSG_ACCESS))}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">💬 ${t("Demander le code sur WhatsApp")}</a></div>`;
     return;
   }
   AuthService.login({ name, parish });
@@ -2079,6 +3454,7 @@ window.addEventListener("hashchange", render);
    Démarrage
    ====================================================================== */
 (function init() {
+  setLang(LANG, true);
   Progress.load(); Favs.load();
   document.getElementById("favicon").href = "data:image/svg+xml," + encodeURIComponent(logoSVG(64));
   render();
