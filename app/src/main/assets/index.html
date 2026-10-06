@@ -417,27 +417,35 @@ mark{background:rgba(245,215,110,.6);color:inherit;border-radius:3px;padding:0 2
 /* ============================================================
    Certificat de fin de formation (écran + impression A4 paysage)
    ============================================================ */
-.cert-wrap{width:100%;overflow:hidden;margin:6px 0 16px}
-.cert{width:1123px;height:794px;transform-origin:0 0;background:#fff;color:var(--night);position:relative;box-sizing:border-box;padding:34px;font-family:var(--serif)}
-.cert-frame{position:absolute;inset:22px;border:3px solid var(--night);border-radius:6px}
-.cert-frame::after{content:"";position:absolute;inset:8px;border:1.5px solid var(--gold);border-radius:3px}
-.cert-in{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 70px 30px}
-.cert-in .c-logo{margin-bottom:6px}
-.cert-in .c-kicker{font-family:system-ui,sans-serif;letter-spacing:.32em;font-size:15px;color:var(--royal);font-weight:700}
-.cert-in .c-title{font-size:50px;margin:6px 0 2px;letter-spacing:.06em;color:var(--night)}
-.cert-in .c-line{width:180px;height:3px;background:var(--gold);margin:10px auto 18px;border-radius:2px}
-.cert-in .c-to{font-size:19px;font-style:italic;color:#4a5878}
-.cert-in .c-name{font-size:44px;font-weight:700;margin:6px 0 2px;color:var(--royal)}
-.cert-in .c-parish{font-family:system-ui,sans-serif;font-size:19px;font-weight:600;letter-spacing:.04em;color:var(--night)}
-.cert-in .c-text{font-size:20px;line-height:1.5;max-width:820px;margin:16px auto 10px}
-.cert-in .c-score{font-family:system-ui,sans-serif;font-size:19px}
-.cert-in .c-score b{color:var(--royal);font-size:24px}
-.cert-foot{margin-top:auto;width:100%;display:flex;align-items:flex-end;justify-content:space-between;font-family:system-ui,sans-serif;font-size:14px;color:#4a5878}
-.cert-foot .c-sign{text-align:center;min-width:250px}
-.cert-foot .c-sign b{display:block;color:var(--night);font-size:16px;border-top:1.5px solid var(--night);padding-top:6px;margin-top:40px}
-.cert-foot .c-qr{text-align:center;width:220px;white-space:nowrap}
-.cert-foot .c-qr svg{width:122px;height:122px;display:block;margin:0 auto 4px}
-.cert-foot .c-num{font-weight:700;color:var(--night);letter-spacing:.04em}
+.cert-wrap{width:100%;overflow:hidden;margin:6px 0 16px;border-radius:6px;box-shadow:0 6px 22px rgba(7,26,61,.18)}
+.cert{width:1123px;height:794px;transform-origin:0 0;position:relative;box-sizing:border-box;overflow:hidden;color:var(--night);font-family:Georgia,"Times New Roman",serif;
+  background:radial-gradient(ellipse at center,#FFFFFF 0%,#FFFCF2 55%,#F6EED6 100%)}
+.cert-bg{position:absolute;inset:0;width:100%;height:100%}
+.cert-mark{position:absolute;left:50%;top:50%;width:430px;height:430px;margin:-215px 0 0 -215px;opacity:.04}
+.cert-mark svg{width:100%;height:100%}
+.cert-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;text-align:center;padding:62px 120px 0}
+.cert-in .c-logo svg{display:block;filter:drop-shadow(0 3px 6px rgba(7,26,61,.25))}
+.cert-in .c-kicker{font-family:Arial,Helvetica,sans-serif;letter-spacing:.42em;font-size:13px;color:var(--royal);font-weight:700;margin-top:12px}
+.cert-in .c-title{font-size:64px;line-height:1;margin:12px 0 0;letter-spacing:.14em;color:var(--night);font-weight:700}
+.cert-in .c-sub{display:flex;align-items:center;gap:16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:.38em;color:#A8841F;font-weight:700;margin-top:10px}
+.cert-in .c-sub i{display:block;width:90px;height:2px;background:linear-gradient(90deg,transparent,#C9A43A)}
+.cert-in .c-sub i:last-child{background:linear-gradient(90deg,#C9A43A,transparent)}
+.cert-in .c-to{font-size:19px;font-style:italic;color:#5a6684;margin-top:24px}
+.cert-in .c-name{font-size:52px;font-style:italic;font-weight:700;margin:4px 0 0;color:var(--royal);padding:0 40px 6px;border-bottom:2px solid #C9A43A;max-width:860px;line-height:1.15}
+.cert-in .c-parish{font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--night);margin-top:12px}
+.cert-in .c-text{font-size:19px;line-height:1.55;max-width:800px;margin:14px auto 0;color:#25324f}
+.cert-foot{position:absolute;left:120px;right:120px;bottom:70px;display:flex;align-items:flex-end;justify-content:space-between;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#5a6684}
+.cert-foot .c-sign{text-align:center;width:250px}
+.cert-foot .c-sign .c-date{font-size:14px;color:var(--night)}
+.cert-foot .c-sign b{display:block;color:var(--night);font-size:15px;border-top:1.5px solid var(--night);padding-top:7px;margin-top:46px}
+.cert-foot .c-sign small{display:block;margin-top:2px;letter-spacing:.08em}
+.cert-foot .c-seal{width:170px;height:170px;margin-bottom:-14px}
+.cert-foot .c-seal svg{width:100%;height:100%;display:block;filter:drop-shadow(0 4px 8px rgba(120,90,10,.35))}
+.cert-foot .c-qr{text-align:center;width:250px;white-space:nowrap}
+.cert-foot .c-qr .qr-box{display:inline-block;background:#fff;padding:7px;border:1.5px solid #C9A43A;border-radius:6px}
+.cert-foot .c-qr svg{width:104px;height:104px;display:block}
+.cert-foot .c-num{display:block;font-weight:700;color:var(--night);letter-spacing:.05em;margin-top:6px}
+.cert-foot .c-scan{display:block;font-size:11px}
 #cert-print{display:none}
 @media print{
   @page{size:A4 landscape;margin:0}
@@ -1752,25 +1760,68 @@ function viewMenu() {
   <div class="btn-row"><button class="btn btn-ghost btn-block" data-action="logout">Changer de profil</button></div>`;
 }
 
+/* Cadre, coins dorés et sceau du certificat (dessinés en SVG, sans croix ni verset). */
+function certFrameSVG() {
+  const corner = `<g fill="none" stroke="#C9A43A" stroke-linecap="round">
+      <path d="M8 120 V40 Q8 8 40 8 H120" stroke-width="3"/>
+      <path d="M22 96 V48 Q22 22 48 22 H96" stroke-width="1.5"/>
+      <path d="M40 8 Q40 40 8 40" stroke-width="1.5"/>
+      <circle cx="34" cy="34" r="5" fill="#C9A43A" stroke="none"/>
+      <path d="M58 22 q10 -12 22 0 q-12 10 -22 0z M22 58 q-12 10 0 22 q10 -12 0 -22z" fill="#E7CF86" stroke-width="1"/>
+    </g>`;
+  const at = (x, y, sx, sy) => `<g transform="translate(${x} ${y}) scale(${sx} ${sy})">${corner}</g>`;
+  return `<svg class="cert-bg" viewBox="0 0 1123 794" preserveAspectRatio="none" aria-hidden="true">
+    <defs><pattern id="cguil" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="14" cy="14" r="12" fill="none" stroke="#C9A43A" stroke-opacity=".10" stroke-width="1"/></pattern></defs>
+    <rect x="0" y="0" width="1123" height="794" fill="url(#cguil)"/>
+    <rect x="14" y="14" width="1095" height="766" fill="none" stroke="#071A3D" stroke-width="14"/>
+    <rect x="30" y="30" width="1063" height="734" fill="none" stroke="#C9A43A" stroke-width="2.5"/>
+    <rect x="37" y="37" width="1049" height="720" fill="none" stroke="#C9A43A" stroke-width="1" stroke-dasharray="2 5"/>
+    ${at(30, 30, 1, 1)}${at(1093, 30, -1, 1)}${at(30, 764, 1, -1)}${at(1093, 764, -1, -1)}
+  </svg>`;
+}
+function certSealSVG(score) {
+  const pts = [];
+  for (let i = 0; i < 48; i++) {
+    const r = i % 2 ? 76 : 84, a = Math.PI * 2 * i / 48;
+    pts.push((90 + r * Math.cos(a)).toFixed(1) + "," + (90 + r * Math.sin(a)).toFixed(1));
+  }
+  return `<svg viewBox="0 0 180 180" aria-label="Sceau ${score} %">
+    <defs><radialGradient id="cseal" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#F7E3A1"/><stop offset=".55" stop-color="#D4AF37"/><stop offset="1" stop-color="#A8841F"/></radialGradient>
+</defs>
+    <polygon points="${pts.join(" ")}" fill="url(#cseal)"/>
+    <circle cx="90" cy="90" r="66" fill="#071A3D"/>
+    <circle cx="90" cy="90" r="61" fill="none" stroke="#D4AF37" stroke-width="1.5"/>
+    <text x="90" y="62" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="700" fill="#F5D76E">KCCiste</text>
+    <text x="90" y="98" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="700" fill="#FFFFFF">${score} %</text>
+    <text x="90" y="118" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="10" font-weight="700" letter-spacing="2" fill="#F5D76E">RÉUSSI</text>
+    <text x="90" y="134" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="8.5" letter-spacing="2" fill="#D4AF37">FORMATION</text>
+  </svg>`;
+}
+
 function viewCertificate() {
   const c = Certificate.current();
   if (!c) return `<div class="empty card"><div class="e-ic">🎓</div><p>Votre certificat sera disponible dès que vous aurez réussi l'évaluation finale (à partir de ${CONFIG.PASS_SCORE} %).</p><a class="btn btn-royal" href="#/tests">Voir les QCM</a></div>`;
   return `<div class="page-head"><h1>🎓 Mon certificat</h1><p>Enregistrez-le en PDF pour l'imprimer ou le partager.</p></div>
-  <div class="cert-wrap" id="cert-wrap"><div class="cert" id="cert"><div class="cert-frame"></div><div class="cert-in">
-    <div class="c-logo">${logoSVG(74)}</div>
-    <div class="c-kicker">JE SUIS KCCiste – FORMATION</div>
-    <div class="c-title">CERTIFICAT DE FORMATION</div>
-    <div class="c-line"></div>
-    <div class="c-to">Ce certificat est décerné à</div>
-    <div class="c-name">${esc(c.name)}</div>
-    <div class="c-parish">${esc(c.parish)}</div>
-    <p class="c-text">qui ${esc(CONFIG.CERT_TEXT)}</p>
-    <div class="c-score">Résultat à l'évaluation finale : <b>${c.score} %</b></div>
-    <div class="cert-foot">
-      <div class="c-sign">Fait le ${esc(formatDate(c.date))}<b>${esc(CONFIG.CREATOR)}</b></div>
-      <div class="c-qr">${Certificate.qrSVG(c)}<span class="c-num">N° ${esc(c.id)}</span></div>
+  <div class="cert-wrap" id="cert-wrap"><div class="cert" id="cert">
+    ${certFrameSVG()}
+    <div class="cert-mark">${logoSVG(430)}</div>
+    <div class="cert-in">
+      <div class="c-logo">${logoSVG(78)}</div>
+      <div class="c-kicker">JE SUIS KCCiste – FORMATION</div>
+      <div class="c-title">CERTIFICAT</div>
+      <div class="c-sub"><i></i>DE FIN DE FORMATION<i></i></div>
+      <div class="c-to">Ce certificat est fièrement décerné à</div>
+      <div class="c-name">${esc(c.name)}</div>
+      <div class="c-parish">${esc(c.parish)}</div>
+      <p class="c-text">qui ${esc(CONFIG.CERT_TEXT)}</p>
     </div>
-  </div></div></div>
+    <div class="cert-foot">
+      <div class="c-sign"><span class="c-date">Fait le ${esc(formatDate(c.date))}</span><b>${esc(CONFIG.CREATOR)}</b><small>Formateur</small></div>
+      <div class="c-seal">${certSealSVG(c.score)}</div>
+      <div class="c-qr"><span class="qr-box">${Certificate.qrSVG(c)}</span><span class="c-num">N° ${esc(c.id)}</span><span class="c-scan">Scannez pour lire le certificat</span></div>
+    </div>
+  </div></div>
   <div class="btn-row">
     <button class="btn btn-gold btn-block" data-action="print-cert">📄 ENREGISTRER EN PDF</button>
   </div>
@@ -1848,9 +1899,10 @@ const Actions = {
     let box = document.getElementById("cert-print");
     if (!box) { box = document.createElement("div"); box.id = "cert-print"; document.body.appendChild(box); }
     const copy = src.cloneNode(true); copy.removeAttribute("id"); copy.style.transform = "none";
-    copy.querySelectorAll("linearGradient[id]").forEach(g => {   // identifiants uniques pour le logo copié
+    copy.querySelectorAll("[id]").forEach(g => {   // identifiants uniques dans la copie (dégradés, motifs, texte du sceau)
       const old = g.id; g.id = old + "p";
       copy.querySelectorAll(`[fill="url(#${old})"]`).forEach(el => el.setAttribute("fill", `url(#${g.id})`));
+      copy.querySelectorAll(`[href="#${old}"]`).forEach(el => el.setAttribute("href", `#${g.id}`));
     });
     box.replaceChildren(copy);
     if (window.KCCAndroid && KCCAndroid.printCertificate) KCCAndroid.printCertificate("Certificat " + (Certificate.current() || {}).id);
