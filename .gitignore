@@ -4,3 +4,8 @@ app/build/
 local.properties
 .idea/
 *.iml
+
+# Version iPhone : copie de index.html faite au moment de la construction
+ios/KCCiste/www/
+ios/*.xcodeproj/
+ios/build/

@@ -3261,7 +3261,7 @@ function certificateImage() {
         const g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height); g.scale(k, k); g.drawImage(img, 0, 0);
         resolve(cv.toDataURL("image/jpeg", 0.92));
       } catch (e) { reject(e); }
-    }, window.KCCAndroid ? 0 : 300);
+    }, window.KCCAndroid && !window.KCCiOS ? 0 : 300);
     img.onerror = () => reject(new Error("svg-load"));
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   });

@@ -38,3 +38,16 @@ La même application est publiée comme site web installable grâce à GitHub Pa
 2. À chaque modification de `index.html` sur `main`, le site est republié automatiquement.
 3. Sur l'iPhone : ouvrez le lien dans **Safari**, touchez **Partager** ⬆️ puis
    **« Sur l'écran d'accueil »**. L'icône apparaît comme une application et fonctionne hors ligne.
+
+## Version iPhone pour l'App Store (.ipa)
+Le dossier `ios/` contient l'application iPhone (même `index.html`, affiché dans une WKWebView,
+avec enregistrement dans Photos, partage et impression du certificat).
+Le fichier `.github/workflows/build-ios.yml` la fabrique sur un Mac de GitHub : pas besoin de Mac.
+1. Compte Apple Developer (99 $/an) et fiche de l'application dans App Store Connect
+   (identifiant du paquet : `com.jesuiskcciste.formation`).
+2. Clé API App Store Connect (rôle « Admin »), puis 4 secrets du dépôt :
+   `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (contenu du fichier .p8).
+3. Onglet « Actions » › « Construire l'application iPhone (.ipa) » › « Run workflow » :
+   le `.ipa` signé est dans « Artifacts » et il est envoyé dans TestFlight.
+4. Politique de confidentialité à indiquer à Apple :
+   https://reaganmbumba.github.io/je-suis-kcciste-formation/confidentialite.html
