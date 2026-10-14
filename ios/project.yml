@@ -1,0 +1,52 @@
+# Projet Xcode de la version iPhone, généré par XcodeGen (voir .github/workflows/build-ios.yml).
+# L'interface est la même que l'APK : app/src/main/assets/index.html, copiée dans KCCiste/www/ au moment de la construction.
+name: KCCiste
+options:
+  bundleIdPrefix: com.jesuiskcciste
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    MARKETING_VERSION: "1.1"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+targets:
+  KCCiste:
+    type: application
+    platform: iOS
+    sources:
+      - path: KCCiste
+        excludes: ["www/**"]
+      - path: KCCiste/www
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jesuiskcciste.formation
+        PRODUCT_NAME: KCCiste
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: KCCiste/Info.plist
+    info:
+      path: KCCiste/Info.plist
+      properties:
+        CFBundleDisplayName: KCCiste Formation
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: fr
+        CFBundleLocalizations: [fr, pt, en]
+        LSRequiresIPhoneOS: true
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UIViewControllerBasedStatusBarAppearance: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSPhotoLibraryAddUsageDescription: "Pour enregistrer votre certificat dans vos Photos."
+        LSApplicationQueriesSchemes: [whatsapp]

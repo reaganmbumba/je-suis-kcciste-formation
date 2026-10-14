@@ -1,0 +1,87 @@
+name: Construire l'application iPhone (.ipa)
+
+# Fabrique la version iPhone (même index.html que l'APK) sur un Mac de GitHub.
+# - Sans les secrets Apple : vérifie seulement que l'application se construit (simulateur).
+# - Avec les secrets Apple : produit le fichier .ipa signé (téléchargeable dans « Artifacts »)
+#   et, lancé à la main avec « Envoyer à l'App Store » coché, l'envoie dans App Store Connect (TestFlight).
+# Secrets à créer (Settings › Secrets and variables › Actions) :
+#   APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (contenu du fichier AuthKey_XXXX.p8)
+on:
+  push:
+    branches: [main]
+    paths:
+      - app/src/main/assets/**
+      - ios/**
+      - .github/workflows/build-ios.yml
+  pull_request:
+    paths:
+      - app/src/main/assets/**
+      - ios/**
+      - .github/workflows/build-ios.yml
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Envoyer à l'App Store (TestFlight)"
+        type: boolean
+        default: true
+
+jobs:
+  ios:
+    runs-on: macos-15
+    env:
+      HAS_APPLE: ${{ secrets.ASC_KEY_P8 != '' && secrets.APPLE_TEAM_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Préparer le projet
+        run: |
+          mkdir -p ios/KCCiste/www
+          cp app/src/main/assets/index.html ios/KCCiste/www/index.html
+          VERSION=$(sed -n 's/.*versionName "\(.*\)".*/\1/p' app/build.gradle)
+          sed -i '' "s/MARKETING_VERSION: \".*\"/MARKETING_VERSION: \"$VERSION\"/; s/CURRENT_PROJECT_VERSION: \".*\"/CURRENT_PROJECT_VERSION: \"$GITHUB_RUN_NUMBER\"/" ios/project.yml
+          brew install xcodegen
+          cd ios && xcodegen generate
+
+      - name: Vérifier la construction (simulateur)
+        if: env.HAS_APPLE != 'true'
+        working-directory: ios
+        run: |
+          xcodebuild -project KCCiste.xcodeproj -scheme KCCiste -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+
+      - name: Construire et signer le .ipa
+        if: env.HAS_APPLE == 'true'
+        working-directory: ios
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          KEY=~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+          printf '%s\n' "$ASC_KEY_P8" > "$KEY"
+          AUTH="-allowProvisioningUpdates -authenticationKeyPath $KEY -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID"
+          xcodebuild -project KCCiste.xcodeproj -scheme KCCiste -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/KCCiste.xcarchive \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID $AUTH archive
+          /usr/libexec/PlistBuddy -c "Add :teamID string $APPLE_TEAM_ID" ExportOptions.plist
+          xcodebuild -exportArchive -archivePath build/KCCiste.xcarchive \
+            -exportOptionsPlist ExportOptions.plist -exportPath build/ipa $AUTH
+          mv build/ipa/*.ipa build/ipa/KCCiste-Formation.ipa
+
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_APPLE == 'true'
+        with:
+          name: KCCiste-Formation-iPhone
+          path: ios/build/ipa/KCCiste-Formation.ipa
+
+      - name: Envoyer à App Store Connect (TestFlight)
+        if: env.HAS_APPLE == 'true' && github.event_name == 'workflow_dispatch' && inputs.upload
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcrun altool --upload-app -t ios -f ios/build/ipa/KCCiste-Formation.ipa \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
