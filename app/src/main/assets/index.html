@@ -713,6 +713,7 @@ const STR_PT_EN = {
   "Certificat enregistré dans la galerie (Images › KCCiste)": ["Certificado guardado na galeria (Imagens › KCCiste)", "Certificate saved to the gallery (Pictures › KCCiste)"],
   "Impossible d'enregistrer l'image dans le téléphone.": ["Não foi possível guardar a imagem no telefone.", "Could not save the image to the phone."],
   "Appuyez longuement sur l'image puis « Ajouter à Photos » pour l'enregistrer.": ["Mantenha premida a imagem e escolha « Adicionar a Fotografias » para a guardar.", "Press and hold the image, then tap “Add to Photos” to save it."],
+  "« Enregistrer dans le téléphone » ajoute l'image du certificat à vos Photos. Pour le PDF : dans la fenêtre d'impression, touchez Partager puis « Enregistrer dans Fichiers ».": ["« Guardar no telefone » adiciona a imagem do certificado às Fotografias. Para o PDF: na janela de impressão, toque em Partilhar e depois « Guardar em Ficheiros ».", "“Save to phone” adds the certificate image to your Photos. For the PDF: in the print window, tap Share then “Save to Files”."],
   "PARTAGER L'IMAGE": ["PARTILHAR A IMAGEM", "SHARE THE IMAGE"],
   "TÉLÉCHARGER L'IMAGE": ["DESCARREGAR A IMAGEM", "DOWNLOAD THE IMAGE"],
   "FERMER": ["FECHAR", "CLOSE"],
@@ -3240,7 +3241,8 @@ function viewCertificate() {
     <button class="btn btn-ghost btn-block" data-action="share-cert" data-target="">📤 ${t("AUTRES APPLICATIONS")}</button>
     <button class="btn btn-gold btn-block" data-action="print-cert">📄 ${t("ENREGISTRER EN PDF")}</button>
   </div>
-  <p class="muted small">${window.KCCAndroid ? t("« Enregistrer dans le téléphone » place l'image du certificat dans la galerie (dossier Images › KCCiste). Pour le PDF, choisissez « Enregistrer au format PDF » dans la fenêtre qui s'ouvre.")
+  <p class="muted small">${window.KCCiOS ? t("« Enregistrer dans le téléphone » ajoute l'image du certificat à vos Photos. Pour le PDF : dans la fenêtre d'impression, touchez Partager puis « Enregistrer dans Fichiers ».")
+    : window.KCCAndroid ? t("« Enregistrer dans le téléphone » place l'image du certificat dans la galerie (dossier Images › KCCiste). Pour le PDF, choisissez « Enregistrer au format PDF » dans la fenêtre qui s'ouvre.")
     : t("Les boutons de partage et « Enregistrer dans le téléphone » affichent l'image du certificat : appuyez longuement dessus pour l'ajouter à vos Photos. Pour le PDF : dans la fenêtre d'impression, touchez Partager puis « Enregistrer dans Fichiers » (iPhone), ou choisissez « Enregistrer au format PDF ».")}</p>`;
 }
 /* Image JPEG du certificat (2246 × 1588 px), pour l'enregistrer ou la partager.
